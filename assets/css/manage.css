@@ -1,0 +1,611 @@
+/*
+ * manage.css
+ * Contains styles for management pages, such as tables, dashboards,
+ * forms, reports, and related management views.
+ */
+
+/* ==========================================================================
+   Main Container & General Layout
+   ========================================================================== */
+
+.manage-container {
+    background-color: white;
+    padding: 30px 40px;
+    border-radius: 15px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 1200px; /* Allow for a wider container for tables */
+    text-align: left;
+    margin-bottom: 40px; /* Add space at the bottom */
+}
+
+.manage-container h2 {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 25px;
+}
+
+.section-box {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 25px;
+    margin-top: 30px;
+}
+
+.section-box h3 {
+    margin-top: 0;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* ==========================================================================
+   Message Boxes (Success/Error)
+   ========================================================================== */
+
+.message-box {
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.success-message {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.error-message {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* ==========================================================================
+   Data Table Styles
+   ========================================================================== */
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.data-table th,
+.data-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    vertical-align: middle;
+}
+
+.data-table thead th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    color: #333;
+}
+
+.data-table tbody tr:hover {
+    background-color: #f9f9f9;
+}
+
+/* Status badge styles */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    text-transform: capitalize;
+    display: inline-block;
+    text-align: center;
+}
+
+.status-not_started { background-color: #6c757d; }
+.status-lobby_open { background-color: #007bff; }
+.status-in_progress { background-color: #ffc107; color: #333; }
+.status-completed { background-color: #28a745; }
+
+/* Action buttons inside the table */
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.action-buttons a {
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    color: white;
+    font-size: 14px;
+    transition: opacity 0.3s ease;
+    text-align: center;
+}
+
+.action-buttons a:hover {
+    opacity: 0.8;
+}
+
+.btn-manage { background-color: #17a2b8; }
+.btn-edit { background-color: #ffc107; color: #333; }
+.btn-results { background-color: #28a745; }
+.btn-start-quiz { background-color: #28a745; }
+
+/* ==========================================================================
+   Admin Dashboard Cards
+   ========================================================================== */
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+    width: 100%;
+    max-width: 1200px;
+    margin-top: 20px;
+}
+
+.dashboard-card {
+    background-color: #fff;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.dashboard-card .card-icon {
+    font-size: 36px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.dashboard-card .card-info .card-title {
+    font-size: 16px;
+    color: #6c757d;
+    margin: 0 0 5px 0;
+}
+
+.dashboard-card .card-info .card-number {
+    font-size: 28px;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+}
+
+/* Card specific colors */
+.card-students .card-icon { background-color: #e7f3ff; color: #007bff; }
+.card-faculty .card-icon { background-color: #e5f9f0; color: #28a745; }
+.card-quizzes .card-icon { background-color: #fff4e5; color: #ffc107; }
+.card-active .card-icon { background-color: #fde6e8; color: #dc3545; }
+
+/* ==========================================================================
+   Quiz Details View & Exam Control Panel
+   ========================================================================== */
+
+.quiz-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.detail-item {
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+}
+
+.detail-item strong {
+    display: block;
+    color: #555;
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+.detail-item span {
+    font-size: 16px;
+    color: #333;
+}
+
+.control-panel {
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+    padding: 25px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.control-panel h3 {
+    margin-top: 0;
+}
+
+.control-panel .button-group {
+    justify-content: center;
+    gap: 15px;
+    display: flex;
+}
+
+.control-panel .button-group button {
+    font-size: 16px;
+    padding: 12px 24px;
+    width: auto;
+    color: white;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-open-lobby { background-color: #007bff; }
+.btn-start-exam { background-color: #28a745; }
+.btn-end-exam { background-color: #dc3545; }
+
+/* ==========================================================================
+   Forms (Upload, Manual Add, etc.)
+   ========================================================================== */
+
+.upload-form .form-group {
+    max-width: 500px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.upload-form .button-red {
+    width: auto;
+    padding-left: 30px;
+    padding-right: 30px;
+}
+
+.manual-add-form .form-group {
+    margin-bottom: 20px;
+}
+
+.manual-add-form .form-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.manual-add-form .form-group input,
+.manual-add-form .form-group select,
+.manual-add-form textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+    background-color: #f9f9f9;
+}
+
+.manual-add-form textarea {
+    min-height: 80px;
+    font-family: inherit;
+}
+
+.manual-add-form .form-row {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.manual-add-form .form-row .form-group {
+    flex: 1;
+    min-width: 150px;
+}
+
+.options-container {
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    margin-top: 15px;
+}
+
+.option-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.option-item input[type="text"] {
+    flex-grow: 1;
+}
+
+.option-item label {
+    font-weight: bold;
+}
+
+.correct-answer-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.correct-answer-group input {
+    width: auto !important; /* Override default width */
+}
+
+/* ==========================================================================
+   Reports (General, Item Analysis)
+   ========================================================================== */
+
+.report-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.report-header h2 {
+    margin: 0;
+}
+
+.report-selector .form-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 0;
+}
+
+.report-selector label {
+    margin-bottom: 0;
+    white-space: nowrap;
+}
+
+.report-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+    margin-bottom: 30px;
+}
+
+.summary-card {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+}
+
+.summary-card .card-title {
+    font-size: 16px;
+    color: #6c757d;
+    margin: 0 0 10px 0;
+}
+
+.summary-card .card-value {
+    font-size: 28px;
+    font-weight: bold;
+    color: #343a40;
+    margin: 0;
+}
+
+.results-table .disqualified td {
+    background-color: #f8d7da;
+    color: #721c24;
+    text-decoration: line-through;
+}
+
+.item-analysis-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 25px;
+}
+
+.analysis-card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 25px;
+}
+
+.analysis-card h4 {
+    margin-top: 0;
+    font-size: 18px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.analysis-stats {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 20px;
+    font-size: 16px;
+}
+
+.analysis-stats strong {
+    color: #28a745;
+}
+
+.analysis-options-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.analysis-option-item {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 8px;
+}
+
+.analysis-option-item.correct {
+    background-color: #d4edda;
+    font-weight: bold;
+}
+
+.option-text {
+    flex-grow: 1;
+}
+
+.option-count {
+    font-weight: bold;
+    margin-left: 20px;
+    min-width: 100px;
+}
+
+/* ==========================================================================
+   Descriptive Answer Evaluation
+   ========================================================================== */
+
+.evaluation-card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    padding: 25px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.evaluation-card .student-info {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.evaluation-card .question-text-eval {
+    font-style: italic;
+    color: #555;
+    margin-bottom: 10px;
+}
+
+.evaluation-card .answer-text {
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 5px;
+    min-height: 50px;
+    line-height: 1.6;
+}
+
+.evaluation-form {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.evaluation-form .form-group {
+    margin-bottom: 0;
+}
+
+.evaluation-form .form-group label {
+    font-weight: bold;
+}
+
+.evaluation-form .input-field {
+    padding: 8px;
+    max-width: 100px;
+}
+
+.evaluation-form .button-red {
+    width: auto;
+    padding: 8px 20px;
+    font-size: 14px;
+}
+
+.evaluation-form .feedback-message {
+    font-weight: bold;
+    font-size: 14px;
+    margin-left: 10px;
+}
+
+.feedback-success { color: #28a745; }
+.feedback-error { color: #dc3545; }
+
+
+/* ==========================================================================
+   Modals (Confirmation, Password Reset)
+   ========================================================================== */
+
+.confirm-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: none; /* Hidden by default */
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+}
+
+.confirm-modal {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+    max-width: 450px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.confirm-modal h3 {
+    margin-top: 0;
+    font-size: 22px;
+}
+
+.confirm-modal p {
+    font-size: 16px;
+    color: #555;
+}
+
+.confirm-modal .button-group {
+    margin-top: 25px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.confirm-modal .button-group button {
+    padding: 10px 25px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    width: auto;
+}
+
+.btn-confirm-delete {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-cancel {
+    background-color: #6c757d;
+    color: white;
+}
+
+.reset-password-form .form-group {
+    text-align: left;
+    margin-bottom: 15px;
+}
+
+.reset-password-form .form-group label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.reset-password-form .input-field {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}

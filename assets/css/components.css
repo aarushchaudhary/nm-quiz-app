@@ -1,0 +1,146 @@
+/* * components.css
+ * Contains styles for reusable UI components like login boxes, buttons,
+ * input fields, and dashboard elements.
+ */
+
+/* Universal box-sizing for easier layout management */
+* {
+  box-sizing: border-box;
+}
+
+/* Login box styles from your faculty_login.css */
+.login-box {
+  background-color: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 360px; /* Max width for larger screens */
+  text-align: center;
+}
+
+.login-box h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 22px;
+}
+
+/* Input field styles */
+.input-field {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f0f0f0;
+  font-size: 16px;
+}
+
+/* General purpose button (red) */
+.button-red {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background-color: #e60000; /* NMIMS red */
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration: none; /* For <a> tags styled as buttons */
+  display: inline-block; /* For <a> tags */
+  text-align: center; /* For <a> tags */
+  transition: background-color 0.3s ease;
+}
+
+.button-red:hover {
+  background-color: #cc0000; /* Darker red on hover */
+}
+
+/* Dashboard specific components from your faculty_dashboard.css */
+.dashboard-center-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.welcome-message {
+  background-color: rgba(255, 255, 255, 0.9);
+  color: black;
+  font-size: 20px;
+  font-weight: bold;
+  border-radius: 8px;
+  padding: 15px 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: inline-block;
+  margin-bottom: 25px;
+}
+
+.button-group {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Larger button variant for dashboards */
+.button-group .button-red {
+  padding: 16px 32px;
+  font-size: 18px;
+  width: auto; /* Allow button to size to its content */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* --- NEW STYLES FOR FORMS --- */
+
+/* Form container for pages like 'Create Quiz' */
+.form-container {
+  background-color: white;
+  padding: 30px 40px;
+  border-radius: 15px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 700px; /* Wider for more complex forms */
+  text-align: left;
+}
+
+.form-container h2 {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 25px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+    background-color: #f9f9f9;
+}
+
+/* For laying out multiple inputs in a single row */
+.form-row {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.form-row .form-group {
+    flex: 1;
+    min-width: 150px; /* Prevent fields from becoming too narrow */
+}

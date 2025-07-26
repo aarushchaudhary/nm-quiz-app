@@ -1,0 +1,78 @@
+/* * base.css
+ * Contains the core layout styles for the entire application, 
+ * including body background, header ribbon, and footer.
+ */
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  /* Make sure the background image is in the /assets/media/ folder */
+  background: url('../images/background.jpg') no-repeat center center fixed;
+  background-size: cover;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* The main content area should grow to fill available space */
+main {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+/* Header ribbon style */
+.ribbon {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* This will push the logo and logout button to the edges */
+  background-color: white;
+  color: black;
+  padding: 10px 20px;
+  position: relative;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.logo {
+  height: 40px;
+  width: auto;
+}
+
+.site-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 24px;
+  margin: 0;
+}
+
+/* --- Logout Button Styles --- */
+.logout-button {
+    text-decoration: none;
+    color: white;
+    background-color: #e60000; /* Red background */
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+.logout-button:hover {
+    background-color: #cc0000; /* Darker red on hover */
+}
+
+
+/* Footer style */
+.footer {
+  width: 100%;
+  background-color: white;
+  color: black;
+  text-align: center;
+  padding: 10px 0;
+  font-size: 14px;
+  border-top: 1px solid #ccc;
+  flex-shrink: 0; /* Prevents footer from shrinking */
+}
