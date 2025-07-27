@@ -14,18 +14,19 @@
   $student_user_id = $_SESSION['user_id'];
   $studentName = isset($_SESSION['name']) ? htmlspecialchars($_SESSION['name']) : 'Student';
 
-  // --- Fetch the Student's Course ID ---
-  $stmt_student = $pdo->prepare("SELECT course_id FROM students WHERE user_id = ?");
+  // --- Fetch the Student's Course ID and Graduation Year ---
+  $stmt_student = $pdo->prepare("SELECT course_id, graduation_year FROM students WHERE user_id = ?");
   $stmt_student->execute([$student_user_id]);
   $student_info = $stmt_student->fetch();
   
   $student_course_id = $student_info ? $student_info['course_id'] : null;
+  $student_grad_year = $student_info ? $student_info['graduation_year'] : null;
   $quizzes = [];
 
   // --- Fetch Available Quizzes with Corrected Logic ---
-  if ($student_course_id) {
-      // **FIX:** The query now shows quizzes that are either manually started by the faculty
-      // OR are within their scheduled time window. This is much more flexible.
+  if ($student_course_id && $student_grad_year) {
+      // **FIX:** The query now checks for both course_id AND graduation_year,
+      // ensuring only students from the target batch can see the quiz.
       $sql = "SELECT 
                 q.id, 
                 q.title, 
@@ -34,6 +35,7 @@
               FROM quizzes q
               JOIN exam_statuses es ON q.status_id = es.id
               WHERE q.course_id = :course_id 
+              AND q.graduation_year = :graduation_year
               AND (
                 (NOW() BETWEEN q.start_time AND q.end_time AND es.name != 'Completed')
                 OR
@@ -42,7 +44,10 @@
               ORDER BY q.start_time ASC";
       
       $stmt_quizzes = $pdo->prepare($sql);
-      $stmt_quizzes->execute([':course_id' => $student_course_id]);
+      $stmt_quizzes->execute([
+          ':course_id' => $student_course_id,
+          ':graduation_year' => $student_grad_year
+      ]);
       $quizzes = $stmt_quizzes->fetchAll();
   }
 ?>
@@ -63,7 +68,7 @@
         <tbody>
             <?php if (empty($quizzes)): ?>
                 <tr>
-                    <td colspan="4" style="text-align:center; padding: 20px;">There are no active quizzes available for you at this moment.</td>
+                    <td colspan="4" style="text-align:center; padding: 20px;">There are no active quizzes available for your batch at this moment.</td>
                 </tr>
             <?php else: ?>
                 <?php foreach ($quizzes as $quiz): ?>
@@ -78,7 +83,6 @@
                         </td>
                         <td class="action-buttons">
                             <?php
-                                // The student can join if the exam is not 'Not Started'
                                 if ($quiz['status_name'] != 'Not Started') {
                                     echo '<a href="lobby.php?id=' . $quiz['id'] . '" class="btn-manage" style="background-color: #28a745;">Join Exam</a>';
                                 } else {

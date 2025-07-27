@@ -13,43 +13,31 @@ document.addEventListener('DOMContentLoaded', async function() {
         timer: document.getElementById('timer'),
         questionText: document.getElementById('question-text'),
         optionsGrid: document.getElementById('options-grid'),
-        nextBtn: document.getElementById('next-btn')
+        nextBtn: document.getElementById('next-btn'),
+        clickPrompt: document.getElementById('click-prompt')
     };
 
     const quizId = ui.examContainer.dataset.quizId;
-    const examState = {
-        questions: [],
-        currentQuestionIndex: 0,
-        attemptId: null,
-        questionStartTime: null
-    };
-    const proctoringState = {
-        warningCount: 0,
-        examFinished: false
-    };
+    const examState = { questions: [], currentQuestionIndex: 0, attemptId: null, questionStartTime: null };
+    const proctoringState = { warningCount: 0, examFinished: false };
 
     // --- Main Exam Functions ---
     async function startExam() {
         try {
             const response = await fetch(`/nmims_quiz_app/api/student/fetch_exam_questions.php?id=${quizId}`);
             const data = await response.json();
-            
             if (!response.ok || data.error) {
                 throw new Error(data.error || 'Failed to load exam data.');
             }
-
             examState.questions = data.questions;
             examState.attemptId = data.attempt_id;
-            
             if (examState.questions.length === 0) {
                 throw new Error('This quiz has no questions. Please contact your faculty.');
             }
-            
             startTimer(data.duration_minutes);
             renderQuestion();
             ui.loadingOverlay.style.display = 'none';
             ui.examContainer.style.display = 'flex';
-
         } catch (error) {
             alert(`Error starting exam: ${error.message}`);
             window.location.href = 'dashboard.php';
@@ -62,7 +50,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         ui.questionText.textContent = q.question_text;
         ui.optionsGrid.innerHTML = '';
         if (q.question_type_id == 3) {
-            ui.optionsGrid.innerHTML = `<textarea id="descriptive-answer" class="descriptive-answer-area" placeholder="Type your answer here..."></textarea>`;
+            ui.optionsGrid.innerHTML = `<textarea id="descriptive-answer" class="descriptive-answer-area" placeholder="Type your answer here..." spellcheck="false"></textarea>`;
         } else {
             const inputType = q.question_type_id == 1 ? 'radio' : 'checkbox';
             q.options.forEach(opt => {
@@ -93,14 +81,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             payload.selected_option_ids = Array.from(ui.optionsGrid.querySelectorAll('input:checked')).map(i => i.value);
         }
         try {
-            await fetch('/nmims_quiz_app/api/student/save_answer.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-        } catch (error) {
-            console.error('Failed to save answer:', error);
-        }
+            await fetch('/nmims_quiz_app/api/student/save_answer.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        } catch (error) { console.error('Failed to save answer:', error); }
     }
 
     async function finishExam(isDisqualified = false) {
@@ -146,11 +128,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         }, 1000);
     }
 
-    function enterFullscreen() {
-        document.documentElement.requestFullscreen().catch(err => console.error(err));
-    }
-
-    async function logViolation() {
+    // --- Proctoring Functions ---
+    function enterFullscreen() { document.documentElement.requestFullscreen().catch(err => console.error(err)); }
+    
+    async function logViolation(description) {
         if (!examState.attemptId) return;
         await fetch('/nmims_quiz_app/api/student/log_event.php', {
             method: 'POST',
@@ -158,15 +139,15 @@ document.addEventListener('DOMContentLoaded', async function() {
             body: JSON.stringify({
                 attempt_id: examState.attemptId,
                 event_type: 'Violation',
-                description: `User left the exam window. Warning #${proctoringState.warningCount}.`
+                description: description
             })
         });
     }
 
-    function triggerViolation() {
+    function triggerViolation(description) {
         if (proctoringState.examFinished) return;
         proctoringState.warningCount++;
-        logViolation();
+        logViolation(description);
         if (proctoringState.warningCount >= 2) {
             finishExam(true);
         } else {
@@ -178,17 +159,18 @@ document.addEventListener('DOMContentLoaded', async function() {
 
     function handleVisibilityChange() {
         if (document.hidden) {
-            triggerViolation();
+            triggerViolation(`User left the exam tab. Warning #${proctoringState.warningCount + 1}.`);
         }
     }
 
     function handleFullscreenChange() {
         if (!document.fullscreenElement) {
-            triggerViolation();
+            triggerViolation(`User exited fullscreen. Warning #${proctoringState.warningCount + 1}.`);
             setTimeout(enterFullscreen, 1000);
         }
     }
 
+    // --- Event Listeners ---
     ui.nextBtn.addEventListener('click', async () => {
         if (examState.currentQuestionIndex < examState.questions.length - 1) {
             await saveCurrentAnswer();
@@ -206,9 +188,29 @@ document.addEventListener('DOMContentLoaded', async function() {
             ui.nextBtn.disabled = ui.optionsGrid.querySelectorAll('input:checked').length === 0;
         }
     });
+    
+    document.addEventListener('contextmenu', event => event.preventDefault());
+    
+    document.addEventListener('keydown', event => {
+        if (proctoringState.examFinished) return;
+        if (event.metaKey || event.altKey) {
+            event.preventDefault();
+            triggerViolation(`Attempted to use a system command (Windows/Alt key). Warning #${proctoringState.warningCount + 1}.`);
+        }
+        const key = event.key.toUpperCase();
+        const ctrl = event.ctrlKey;
+        const shift = event.shiftKey;
+        if (key === 'F12' || (ctrl && shift && key === 'I') || (ctrl && shift && key === 'J') || (ctrl && key === 'U')) {
+            event.preventDefault();
+            triggerViolation(`Attempted to use developer tools shortcut (${event.key}). Warning #${proctoringState.warningCount + 1}.`);
+        }
+    });
 
+    // --- Initializer ---
     async function initializeExam() {
-        ui.loadingOverlay.innerHTML += '<p style="margin-top: 15px;">Click anywhere to begin the exam.</p>';
+        document.body.classList.add('exam-mode');
+        ui.clickPrompt.textContent = 'Click anywhere to begin the exam.';
+        
         document.body.addEventListener('click', async () => {
             enterFullscreen();
             document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -217,7 +219,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         }, { once: true });
     }
 
-    if (quizId) {
+    if(quizId) {
         initializeExam();
     } else {
         window.location.href = 'dashboard.php';

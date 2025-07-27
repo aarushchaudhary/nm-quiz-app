@@ -40,63 +40,87 @@
   $answered_count = $correct_count + $incorrect_count;
   $unanswered_count = $total_questions - $answered_count;
 
-  function calculate_percentage($count, $total) {
-      return ($total > 0) ? round(($count / $total) * 100) : 0;
+  // **NEW:** Calculate Time Taken and Accuracy
+  $time_taken_str = 'N/A';
+  if ($attempt['started_at'] && $attempt['submitted_at']) {
+      $start_time = new DateTime($attempt['started_at']);
+      $end_time = new DateTime($attempt['submitted_at']);
+      $interval = $start_time->diff($end_time);
+      $time_taken_str = $interval->format('%im %ss');
   }
+  $accuracy = ($answered_count > 0) ? round(($correct_count / $answered_count) * 100) : 0;
 ?>
 
 <div class="lobby-container">
     <h2>Results for: <span style="color: #e60000;"><?php echo htmlspecialchars($attempt['quiz_title']); ?></span></h2>
     
-    <div style="display: flex; justify-content: space-around; align-items: center; margin: 30px 0;">
-        <div>
+    <div class="summary-grid">
+        <div class="summary-item">
             <h3>Your Score</h3>
-            <p style="font-size: 28px; font-weight: bold; color: #28a745; margin:0;">
-                <?php echo htmlspecialchars(number_format($attempt['total_score'], 2)); ?>
-            </p>
+            <p style="color: #28a745;"><?php echo htmlspecialchars(number_format($attempt['total_score'], 2)); ?></p>
         </div>
-        <div>
+        <div class="summary-item">
+            <h3>Accuracy</h3>
+            <p style="color: #007bff;"><?php echo $accuracy; ?>%</p>
+        </div>
+        <div class="summary-item">
+            <h3>Time Taken</h3>
+            <p style="color: #333; font-size: 24px;"><?php echo $time_taken_str; ?></p>
+        </div>
+        <div class="summary-item">
             <h3>Total Questions</h3>
-            <p style="font-size: 28px; font-weight: bold; color: #333; margin:0;">
-                <?php echo $total_questions; ?>
-            </p>
+            <p style="color: #333;"><?php echo $total_questions; ?></p>
         </div>
     </div>
 
-    <!-- Pure CSS Bar Chart Visualization -->
-    <div class="css-chart-container">
-        <h4>Performance Breakdown</h4>
-        <ul class="css-chart">
-            <li>
-                <span class="bar-label">Correct (<?php echo $correct_count; ?>)</span>
-                <span class="bar">
-                    <span class="bar-fill correct" style="width: <?php echo calculate_percentage($correct_count, $total_questions); ?>%;">
-                        <?php echo calculate_percentage($correct_count, $total_questions); ?>%
-                    </span>
-                </span>
-            </li>
-            <li>
-                <span class="bar-label">Incorrect (<?php echo $incorrect_count; ?>)</span>
-                <span class="bar">
-                    <span class="bar-fill incorrect" style="width: <?php echo calculate_percentage($incorrect_count, $total_questions); ?>%;">
-                        <?php echo calculate_percentage($incorrect_count, $total_questions); ?>%
-                    </span>
-                </span>
-            </li>
-            <li>
-                <span class="bar-label">Unanswered (<?php echo $unanswered_count; ?>)</span>
-                <span class="bar">
-                    <span class="bar-fill unanswered" style="width: <?php echo calculate_percentage($unanswered_count, $total_questions); ?>%;">
-                        <?php echo calculate_percentage($unanswered_count, $total_questions); ?>%
-                    </span>
-                </span>
-            </li>
-        </ul>
+    <div style="width: 100%; max-width: 350px; margin: 20px auto;">
+        <canvas id="resultsChart"></canvas>
     </div>
 
     <a href="detailed_results.php?attempt_id=<?php echo htmlspecialchars($attempt_id); ?>" class="button-red" style="width: auto; padding: 12px 30px; margin-top: 10px; text-decoration: none; background-color: #17a2b8;">View Detailed Breakdown</a>
     <a href="dashboard.php" class="button-red" style="width: auto; padding: 12px 30px; margin-top: 20px; text-decoration: none;">Back to Dashboard</a>
 </div>
+
+<script src="/nmims_quiz_app/lib/chartjs/chart.umd.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('resultsChart').getContext('2d');
+    
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Correct', 'Incorrect', 'Unanswered'],
+            datasets: [{
+                label: 'Performance',
+                data: [
+                    <?php echo json_encode($correct_count); ?>,
+                    <?php echo json_encode($incorrect_count); ?>,
+                    <?php echo json_encode($unanswered_count); ?>
+                ],
+                backgroundColor: [
+                    'rgba(40, 167, 69, 0.8)',
+                    'rgba(220, 53, 69, 0.8)',
+                    'rgba(108, 117, 125, 0.8)'
+                ],
+                borderColor: '#fff',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                title: {
+                    display: true,
+                    text: 'Your Performance Breakdown'
+                }
+            }
+        }
+    });
+});
+</script>
 
 <?php
   require_once '../../assets/templates/footer.php';

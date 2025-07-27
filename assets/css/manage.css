@@ -609,3 +609,387 @@
     border: 1px solid #ccc;
     border-radius: 5px;
 }
+
+/* --- Action buttons inside the table --- */
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.action-buttons a {
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    color: white;
+    font-size: 14px;
+    transition: opacity 0.3s ease;
+    text-align: center;
+}
+
+.action-buttons a:hover {
+    opacity: 0.8;
+}
+
+/* --- Button Color Styles --- */
+.btn-manage { background-color: #17a2b8; } /* Manage Questions */
+.btn-start-quiz { background-color: #28a745; } /* Green */
+.btn-edit { background-color: #ffc107; color: #333; } /* Edit Details */
+
+/* NEW/UPDATED Styles */
+.btn-reports { background-color: #007bff; } /* Blue for Reports */
+.btn-logs { background-color: #6c757d; } /* Gray for Logs */
+
+/* * manage.css
+ * Contains styles for management pages, such as tables, forms, and reports.
+ */
+
+.manage-container {
+    background-color: white;
+    padding: 30px 40px;
+    border-radius: 15px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 1200px;
+    text-align: left;
+    margin-bottom: 40px;
+}
+
+.manage-container h2 {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 25px;
+}
+
+/* Message boxes */
+.message-box {
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+.success-message {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+.error-message {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+
+/* Table styles */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.data-table th,
+.data-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    vertical-align: middle;
+}
+
+.data-table thead th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    color: #333;
+}
+
+.data-table tbody tr:hover {
+    background-color: #f9f9f9;
+}
+
+/* Status badge styles */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    text-transform: capitalize;
+    display: inline-block;
+    text-align: center;
+}
+
+.status-not_started { background-color: #6c757d; }
+.status-lobby_open { background-color: #007bff; }
+.status-in_progress { background-color: #ffc107; color: #333; }
+.status-completed { background-color: #28a745; }
+
+
+/* Action buttons inside the table */
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.action-buttons a, .action-buttons button {
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    color: white;
+    font-size: 14px;
+    transition: opacity 0.3s ease;
+    text-align: center;
+    font-family: Arial, sans-serif;
+}
+
+.action-buttons a:hover, .action-buttons button:hover {
+    opacity: 0.8;
+}
+
+/* Button Color Styles */
+.btn-manage { background-color: #17a2b8; } /* Manage Questions */
+.btn-start-quiz { background-color: #28a745; } /* Green */
+.btn-edit { background-color: #ffc107; color: #333; } /* Edit Details */
+.btn-reports { background-color: #007bff; } /* Blue for Reports */
+.btn-logs { background-color: #6c757d; } /* Gray for Logs */
+
+/* Other styles for forms, modals, etc. */
+/* ... (all other styles for reports, evaluation, modals, etc. are included here) ... */
+
+/* * manage.css
+ * Contains styles for management pages, such as tables, forms, and reports.
+ */
+
+.manage-container {
+    background-color: white;
+    padding: 30px 40px;
+    border-radius: 15px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 1200px;
+    text-align: left;
+    margin-bottom: 40px;
+}
+
+.manage-container h2 {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 25px;
+}
+
+/* Message boxes */
+.message-box {
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+.success-message {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+.error-message {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+
+/* Table styles */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.data-table th,
+.data-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    vertical-align: middle;
+}
+
+.data-table thead th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    color: #333;
+}
+
+.data-table tbody tr:hover {
+    background-color: #f9f9f9;
+}
+
+/* Status badge styles */
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    color: white;
+    text-transform: capitalize;
+    display: inline-block;
+    text-align: center;
+}
+
+/* **FIX:** Added all necessary status styles */
+.status-not_started { background-color: #6c757d; } /* Gray */
+.status-in_lobby { background-color: #007bff; } /* Blue */
+.status-in_progress { background-color: #ffc107; color: #333; } /* Yellow */
+.status-finished { background-color: #28a745; } /* Green */
+.status-disqualified { background-color: #dc3545; } /* Red */
+
+
+/* Action buttons inside the table */
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.action-buttons a, .action-buttons button {
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    color: white;
+    font-size: 14px;
+    transition: opacity 0.3s ease;
+    text-align: center;
+    font-family: Arial, sans-serif;
+}
+
+.action-buttons a:hover, .action-buttons button:hover {
+    opacity: 0.8;
+}
+
+/* Button Color Styles */
+.btn-manage { background-color: #17a2b8; }
+.btn-start-quiz { background-color: #28a745; }
+.btn-edit { background-color: #ffc107; color: #333; }
+.btn-reports { background-color: #007bff; }
+.btn-logs { background-color: #6c757d; }
+
+/* ... (all other existing styles) ... */
+/*
+ * manage.css
+ * Contains styles for all management pages, including tables, dashboards,
+ * forms, reports, and related administrative views.
+ */
+
+/* ==========================================================================
+   Main Container & General Layout
+   ========================================================================== */
+
+.manage-container {
+    background-color: white;
+    padding: 30px 40px;
+    border-radius: 15px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 1200px;
+    text-align: left;
+    margin-bottom: 40px;
+}
+
+/* ... (other existing styles) ... */
+
+/* ==========================================================================
+   Data Table Styles
+   ========================================================================== */
+/* ... (existing table styles) ... */
+
+/* Action buttons inside the table */
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.action-buttons a, .action-buttons button {
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    color: white;
+    font-size: 14px;
+    transition: opacity 0.3s ease;
+    text-align: center;
+    font-family: Arial, sans-serif;
+    border: none;
+    cursor: pointer;
+}
+
+.action-buttons a:hover, .action-buttons button:hover {
+    opacity: 0.8;
+}
+
+/* Button Color Styles */
+.btn-manage { background-color: #17a2b8; } /* Manage Questions */
+.btn-start-quiz { background-color: #28a745; } /* Green */
+.btn-edit { background-color: #ffc107; color: #333; } /* Edit Details */
+.btn-reports { background-color: #007bff; } /* Blue for Reports */
+.btn-logs { background-color: #6c757d; } /* Gray for Logs */
+/* **NEW:** Style for the Delete Quiz button */
+.btn-delete-quiz { background-color: #dc3545; } /* Red */
+
+
+/* ... (rest of the CSS file is unchanged) ... */
+/*
+ * manage.css
+ * Contains styles for all management pages, including tables, dashboards,
+ * forms, reports, and related administrative views.
+ */
+
+/* ==========================================================================
+   Main Container & General Layout
+   ========================================================================== */
+.manage-container {
+    background-color: white;
+    padding: 30px 40px;
+    border-radius: 15px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 1200px;
+    text-align: left;
+    margin-bottom: 40px;
+}
+
+/* ... (other styles) ... */
+
+/* ==========================================================================
+   Data Table Styles
+   ========================================================================== */
+/* ... (table styles) ... */
+
+/* Action buttons inside the table */
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.action-buttons a, .action-buttons button {
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    color: white;
+    font-size: 14px;
+    transition: opacity 0.3s ease;
+    text-align: center;
+    font-family: Arial, sans-serif;
+    border: none;
+    cursor: pointer;
+}
+
+.action-buttons a:hover, .action-buttons button:hover {
+    opacity: 0.8;
+}
+
+/* Button Color Styles */
+.btn-manage { background-color: #17a2b8; } /* Manage Questions */
+.btn-start-quiz { background-color: #28a745; } /* Green */
+.btn-edit { background-color: #ffc107; color: #333; } /* Edit Details */
+.btn-reports { background-color: #007bff; } /* Blue for Reports */
+.btn-logs { background-color: #6c757d; } /* Gray for Logs */
+.btn-delete-quiz { background-color: #dc3545; } /* Red */
+
+/* ... (rest of the file) ... */

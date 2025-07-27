@@ -15,9 +15,9 @@ $quiz_id = filter_input(INPUT_POST, 'quiz_id', FILTER_VALIDATE_INT);
 $question_text = trim($_POST['question_text']);
 $question_type_id = filter_input(INPUT_POST, 'question_type_id', FILTER_VALIDATE_INT);
 $difficulty_id = filter_input(INPUT_POST, 'difficulty_id', FILTER_VALIDATE_INT);
+$points = filter_input(INPUT_POST, 'points', FILTER_VALIDATE_FLOAT); // **NEW:** Get points value
 $options = $_POST['options'] ?? [];
 
-// **FIX:** Handle both single (radio) and multiple (checkbox) answer submissions
 $correct_answers = [];
 if (isset($_POST['correct_answer_single'])) { // For MCQ (radio button)
     $correct_answers[] = $_POST['correct_answer_single'];
@@ -25,21 +25,19 @@ if (isset($_POST['correct_answer_single'])) { // For MCQ (radio button)
     $correct_answers = $_POST['correct_answers'];
 }
 
-
 // --- Validation ---
-if (!$quiz_id || empty($question_text) || !$question_type_id || !$difficulty_id) {
+if (!$quiz_id || empty($question_text) || !$question_type_id || !$difficulty_id || $points === false) {
     header('Location: /nmims_quiz_app/views/faculty/view_quiz.php?id=' . $quiz_id . '&error=Missing+required+fields.');
     exit();
 }
 
-// --- Database Insertion ---
 try {
     $pdo->beginTransaction();
 
-    // 1. Insert the question
-    $sql_question = "INSERT INTO questions (quiz_id, question_text, question_type_id, difficulty_id) VALUES (?, ?, ?, ?)";
+    // 1. **FIX:** Insert the question with its points value
+    $sql_question = "INSERT INTO questions (quiz_id, question_text, question_type_id, difficulty_id, points) VALUES (?, ?, ?, ?, ?)";
     $stmt_question = $pdo->prepare($sql_question);
-    $stmt_question->execute([$quiz_id, $question_text, $question_type_id, $difficulty_id]);
+    $stmt_question->execute([$quiz_id, $question_text, $question_type_id, $difficulty_id, $points]);
     $question_id = $pdo->lastInsertId();
 
     // 2. Insert options if it's not a descriptive question
@@ -49,7 +47,6 @@ try {
 
         foreach ($options as $index => $option_text) {
             if (!empty(trim($option_text))) {
-                // Check if the current option's index is in the correct_answers array
                 $is_correct = in_array($index, $correct_answers) ? 1 : 0;
                 $stmt_option->execute([$question_id, $option_text, $is_correct]);
             }

@@ -1,12 +1,10 @@
 /* * base.css
- * Contains the core layout styles for the entire application, 
- * including body background, header ribbon, and footer.
+ * Contains the core layout styles for the entire application.
  */
 
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  /* Make sure the background image is in the /assets/media/ folder */
   background: url('../images/background.jpg') no-repeat center center fixed;
   background-size: cover;
   display: flex;
@@ -14,7 +12,6 @@ body {
   min-height: 100vh;
 }
 
-/* The main content area should grow to fill available space */
 main {
     flex-grow: 1;
     display: flex;
@@ -27,7 +24,7 @@ main {
 .ribbon {
   display: flex;
   align-items: center;
-  justify-content: space-between; /* This will push the logo and logout button to the edges */
+  justify-content: space-between;
   background-color: white;
   color: black;
   padding: 10px 20px;
@@ -48,11 +45,33 @@ main {
   margin: 0;
 }
 
-/* --- Logout Button Styles --- */
+/* Container for Header Buttons */
+.header-buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Space between buttons */
+}
+
+/* Home Button Style */
+.home-button {
+    text-decoration: none;
+    color: white;
+    background-color: #e60000; /* Red */
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+.home-button:hover {
+    background-color: #cc0000; /* Darker Red */
+}
+
+/* Logout Button Styles */
 .logout-button {
     text-decoration: none;
     color: white;
-    background-color: #e60000; /* Red background */
+    background-color: #e60000;
     padding: 8px 16px;
     border-radius: 8px;
     font-weight: bold;
@@ -61,7 +80,7 @@ main {
 }
 
 .logout-button:hover {
-    background-color: #cc0000; /* Darker red on hover */
+    background-color: #cc0000;
 }
 
 
@@ -74,5 +93,5 @@ main {
   padding: 10px 0;
   font-size: 14px;
   border-top: 1px solid #ccc;
-  flex-shrink: 0; /* Prevents footer from shrinking */
+  flex-shrink: 0;
 }

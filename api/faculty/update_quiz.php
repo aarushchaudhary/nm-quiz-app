@@ -3,10 +3,7 @@
  * api/faculty/update_quiz.php
  * Handles the server-side logic for updating an existing quiz.
  */
-
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
+session_start();
 require_once '../../config/database.php';
 
 // --- Authorization & Request Method Check ---
@@ -19,17 +16,17 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user_id']) || $_S
 $quiz_id = filter_input(INPUT_POST, 'quiz_id', FILTER_VALIDATE_INT);
 $title = trim($_POST['title']);
 $course_id = filter_input(INPUT_POST, 'course_id', FILTER_VALIDATE_INT);
+$graduation_year = filter_input(INPUT_POST, 'graduation_year', FILTER_VALIDATE_INT); // NEW
 $start_time = $_POST['start_time'];
 $end_time = $_POST['end_time'];
 $duration_minutes = filter_input(INPUT_POST, 'duration_minutes', FILTER_VALIDATE_INT);
 $config_easy_count = filter_input(INPUT_POST, 'config_easy_count', FILTER_VALIDATE_INT);
 $config_medium_count = filter_input(INPUT_POST, 'config_medium_count', FILTER_VALIDATE_INT);
 $config_hard_count = filter_input(INPUT_POST, 'config_hard_count', FILTER_VALIDATE_INT);
-
 $faculty_id = $_SESSION['user_id'];
 
 // --- Basic Validation ---
-if (!$quiz_id || empty($title) || !$course_id || !$duration_minutes || $config_easy_count === false || $config_medium_count === false || $config_hard_count === false) {
+if (!$quiz_id || empty($title) || !$course_id || !$graduation_year || !$duration_minutes) {
     header('Location: /nmims_quiz_app/views/faculty/edit_quiz.php?id=' . $quiz_id . '&error=invalid_input');
     exit();
 }
@@ -38,6 +35,7 @@ if (!$quiz_id || empty($title) || !$course_id || !$duration_minutes || $config_e
 $sql = "UPDATE quizzes SET
             title = :title,
             course_id = :course_id,
+            graduation_year = :graduation_year,
             start_time = :start_time,
             end_time = :end_time,
             duration_minutes = :duration_minutes,
@@ -51,6 +49,7 @@ try {
     $stmt->execute([
         ':title' => $title,
         ':course_id' => $course_id,
+        ':graduation_year' => $graduation_year,
         ':start_time' => $start_time,
         ':end_time' => $end_time,
         ':duration_minutes' => $duration_minutes,
@@ -61,13 +60,10 @@ try {
         ':faculty_id' => $faculty_id
     ]);
 
-    // Redirect to the management page on success
     header('Location: /nmims_quiz_app/views/faculty/manage_quizzes.php?success=quiz_updated');
-    exit();
 
 } catch (PDOException $e) {
-    // Log the error and redirect with a generic error message
     error_log("Quiz update failed: " . $e->getMessage());
     header('Location: /nmims_quiz_app/views/faculty/edit_quiz.php?id=' . $quiz_id . '&error=db_error');
-    exit();
 }
+exit();

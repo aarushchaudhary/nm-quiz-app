@@ -1,5 +1,5 @@
 <?php
-  $pageTitle = 'Manage Quiz';
+  $pageTitle = 'Add Quiz Questions';
   $customCSS = 'manage.css'; 
   
   require_once '../../assets/templates/header.php';
@@ -14,35 +14,16 @@
       header('Location: manage_quizzes.php');
       exit();
   }
-
   $quiz_id = $_GET['id'];
-  $faculty_id = $_SESSION['user_id'];
-
-  // --- Fetch Quiz Details ---
-  $sql = "SELECT q.*, c.name as course_name, es.name as status_name 
-          FROM quizzes q 
-          JOIN courses c ON q.course_id = c.id
-          JOIN exam_statuses es ON q.status_id = es.id
-          WHERE q.id = :quiz_id AND q.faculty_id = :faculty_id";
-  $stmt = $pdo->prepare($sql);
-  $stmt->execute([':quiz_id' => $quiz_id, ':faculty_id' => $faculty_id]);
+  
+  // --- Fetch Quiz & Form Data ---
+  $stmt = $pdo->prepare("SELECT title FROM quizzes WHERE id = :quiz_id");
+  $stmt->execute([':quiz_id' => $quiz_id]);
   $quiz = $stmt->fetch();
-
   if (!$quiz) {
       header('Location: manage_quizzes.php');
       exit();
   }
-  
-  // --- Fetch Data for Forms ---
-  $questions_sql = "SELECT q.id, q.question_text, qt.name as type_name, qd.level as difficulty_level 
-                    FROM questions q
-                    JOIN question_types qt ON q.question_type_id = qt.id
-                    JOIN question_difficulties qd ON q.difficulty_id = qd.id
-                    WHERE quiz_id = :quiz_id ORDER BY q.id DESC";
-  $questions_stmt = $pdo->prepare($questions_sql);
-  $questions_stmt->execute([':quiz_id' => $quiz_id]);
-  $questions = $questions_stmt->fetchAll();
-
   $question_types = $pdo->query("SELECT id, name FROM question_types")->fetchAll();
   $difficulties = $pdo->query("SELECT id, level FROM question_difficulties")->fetchAll();
 ?>
@@ -56,23 +37,10 @@
     if (isset($_GET['error'])) { echo '<div class="message-box error-message">' . htmlspecialchars($_GET['error']) . '</div>'; }
     ?>
 
-    <!-- Details Grid -->
-    <div class="quiz-details-grid">
-        <div class="detail-item"><strong>Course</strong><span><?php echo htmlspecialchars($quiz['course_name']); ?></span></div>
-        <div class="detail-item"><strong>Start Time</strong><span><?php echo date('M j, Y, g:i A', strtotime($quiz['start_time'])); ?></span></div>
-        <div class="detail-item"><strong>End Time</strong><span><?php echo date('M j, Y, g:i A', strtotime($quiz['end_time'])); ?></span></div>
-        <div class="detail-item"><strong>Duration</strong><span><?php echo htmlspecialchars($quiz['duration_minutes']); ?> mins</span></div>
-        <div class="detail-item">
-            <strong>Status</strong>
-            <?php $status_class = strtolower(str_replace(' ', '_', $quiz['status_name'])); ?>
-            <span class="status-badge status-<?php echo htmlspecialchars($status_class); ?>">
-                <?php echo htmlspecialchars($quiz['status_name']); ?>
-            </span>
-        </div>
-        <div class="detail-item"><strong>Total Questions</strong><span><?php echo count($questions); ?></span></div>
+    <div style="text-align:center; margin: 20px 0;">
+        <a href="question_view.php?quiz_id=<?php echo $quiz_id; ?>" class="button-red" style="width: auto; padding: 12px 30px; background-color: #17a2b8;">View & Manage Existing Questions</a>
     </div>
 
-    <!-- Manual Add Question Section -->
     <div class="section-box">
         <h3>Add Question Manually</h3>
         <form action="/nmims_quiz_app/api/faculty/add_manual_question.php" method="POST" class="manual-add-form">
@@ -84,24 +52,9 @@
             </div>
             
             <div class="form-row">
-                <div class="form-group">
-                    <label for="question_type_id">Question Type</label>
-                    <select id="question_type_id" name="question_type_id" required>
-                        <option value="" disabled selected>-- Select Type --</option>
-                        <?php foreach($question_types as $type): ?>
-                        <option value="<?php echo $type['id']; ?>"><?php echo htmlspecialchars($type['name']); ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="difficulty_id">Difficulty</label>
-                    <select id="difficulty_id" name="difficulty_id" required>
-                        <option value="" disabled selected>-- Select Difficulty --</option>
-                        <?php foreach($difficulties as $diff): ?>
-                        <option value="<?php echo $diff['id']; ?>"><?php echo htmlspecialchars($diff['level']); ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
+                <div class="form-group"><label for="question_type_id">Question Type</label><select id="question_type_id" name="question_type_id" required><option value="" disabled selected>-- Select Type --</option><?php foreach($question_types as $type): ?><option value="<?php echo $type['id']; ?>"><?php echo htmlspecialchars($type['name']); ?></option><?php endforeach; ?></select></div>
+                <div class="form-group"><label for="difficulty_id">Difficulty</label><select id="difficulty_id" name="difficulty_id" required><option value="" disabled selected>-- Select Difficulty --</option><?php foreach($difficulties as $diff): ?><option value="<?php echo $diff['id']; ?>"><?php echo htmlspecialchars($diff['level']); ?></option><?php endforeach; ?></select></div>
+                <div class="form-group"><label for="points">Points / Marks</label><input type="number" id="points" name="points" class="input-field" min="0" step="0.5" value="1.0" required></div>
             </div>
 
             <div id="options-section" style="display: none;">
@@ -126,31 +79,45 @@
         </form>
     </div>
 
-    <!-- Other sections here -->
+    <div class="section-box">
+        <h3>Upload Questions via Excel</h3>
+        <form action="/nmims_quiz_app/api/faculty/upload_questions.php" method="POST" enctype="multipart/form-data" class="upload-form">
+            <input type="hidden" name="quiz_id" value="<?php echo $quiz_id; ?>">
+            <div class="form-group">
+                <label for="question_file">Select Excel File (.xlsx)</label>
+                <input type="file" id="question_file" name="question_file" accept=".xlsx, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required>
+            </div>
+            <div class="form-group" style="text-align: center; margin-top: 20px;">
+                <button type="submit" class="button-red" style="width: auto; padding: 12px 40px;">Upload File</button>
+            </div>
+            <p style="text-align:center; margin-top:15px; font-size: 0.9em;">
+                Need a template? <a href="/nmims_quiz_app/assets/templates/question_template.xlsx" download>Download Excel Template</a>
+            </p>
+        </form>
+    </div>
 </div>
 
 <script>
+// The JavaScript for the manual add form remains the same
 document.addEventListener('DOMContentLoaded', function() {
     const questionTypeSelect = document.getElementById('question_type_id');
     const optionsSection = document.getElementById('options-section');
-    const correctInputs = document.querySelectorAll('input[name="correct_answers[]"]');
-
+    
     function toggleOptions() {
         const selectedType = questionTypeSelect.value;
+        const correctInputs = optionsSection.querySelectorAll('input[type="radio"], input[type="checkbox"]');
         
-        if (selectedType === '3' || selectedType === '') { // Descriptive or not selected
+        if (selectedType === '3' || selectedType === '') {
             optionsSection.style.display = 'none';
         } else {
             optionsSection.style.display = 'block';
         }
 
-        // **FIX:** Change input type based on selection
         correctInputs.forEach(input => {
-            if (selectedType === '1') { // MCQ
+            if (selectedType === '1') {
                 input.type = 'radio';
-                // Radio buttons in a group MUST share the same name
                 input.name = 'correct_answer_single'; 
-            } else { // Multiple Answer
+            } else {
                 input.type = 'checkbox';
                 input.name = 'correct_answers[]';
             }
@@ -158,7 +125,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     questionTypeSelect.addEventListener('change', toggleOptions);
-    // Run on page load to set initial state
     toggleOptions();
 });
 </script>

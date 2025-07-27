@@ -17,39 +17,12 @@
     <p style="text-align:center; color: #555; margin-top:0;">Here's a summary of the application activity.</p>
     
     <!-- Grid for summary cards -->
-    <div class="dashboard-grid">
-        <!-- Total Students Card -->
-        <div class="dashboard-card card-students">
-            <div class="card-icon">🎓</div>
-            <div class="card-info">
-                <p class="card-title">Total Students</p>
-                <p class="card-number" id="student-count">0</p>
-            </div>
-        </div>
-        <!-- Total Faculty Card -->
-        <div class="dashboard-card card-faculty">
-            <div class="card-icon">🧑‍🏫</div>
-            <div class="card-info">
-                <p class="card-title">Total Faculty</p>
-                <p class="card-number" id="faculty-count">0</p>
-            </div>
-        </div>
-        <!-- Total Quizzes Card -->
-        <div class="dashboard-card card-quizzes">
-            <div class="card-icon">📝</div>
-            <div class="card-info">
-                <p class="card-title">Total Quizzes</p>
-                <p class="card-number" id="quiz-count">0</p>
-            </div>
-        </div>
-        <!-- Active Quizzes Card -->
-        <div class="dashboard-card card-active">
-            <div class="card-icon">🔴</div>
-            <div class="card-info">
-                <p class="card-title">Active Quizzes</p>
-                <p class="card-number" id="active-quiz-count">0</p>
-            </div>
-        </div>
+    <div class="dashboard-grid" id="dashboard-grid">
+        <!-- Cards are loaded by JavaScript -->
+        <div class="dashboard-card card-students"><div class="card-icon">🎓</div><div class="card-info"><p class="card-title">Total Students</p><p class="card-number">0</p></div></div>
+        <div class="dashboard-card card-faculty"><div class="card-icon">🧑‍🏫</div><div class="card-info"><p class="card-title">Total Faculty</p><p class="card-number">0</p></div></div>
+        <div class="dashboard-card card-quizzes"><div class="card-icon">📝</div><div class="card-info"><p class="card-title">Total Quizzes</p><p class="card-number">0</p></div></div>
+        <div class="dashboard-card card-active"><div class="card-icon">🔴</div><div class="card-info"><p class="card-title">Active Quizzes</p><p class="card-number">0</p></div></div>
     </div>
 
     <!-- Links to other admin pages -->
@@ -57,7 +30,9 @@
         <h3>Admin Tools</h3>
         <div class="button-group" style="justify-content:center;">
             <a href="user_management.php" class="button-red" style="width:auto;">Manage Users</a>
-            <a href="#" class="button-red" style="width:auto; background-color:#6c757d;">View System Logs</a>
+            <a href="manage_schools.php" class="button-red" style="width:auto; background-color:#17a2b8;">Manage Schools</a>
+            <a href="manage_courses.php" class="button-red" style="width:auto; background-color:#ffc107; color:#333;">Manage Courses</a>
+            <a href="system_logs.php" class="button-red" style="width:auto; background-color:#6c757d;">View System Logs</a>
         </div>
     </div>
 </div>
@@ -70,10 +45,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         
         const stats = await response.json();
         
-        document.getElementById('student-count').textContent = stats.students || 0;
-        document.getElementById('faculty-count').textContent = stats.faculty || 0;
-        document.getElementById('quiz-count').textContent = stats.quizzes || 0;
-        document.getElementById('active-quiz-count').textContent = stats.active_quizzes || 0;
+        const grid = document.getElementById('dashboard-grid');
+        // This replaces the placeholder cards with cards containing real data
+        grid.innerHTML = `
+            <div class="dashboard-card card-students"><div class="card-icon">🎓</div><div class="card-info"><p class="card-title">Total Students</p><p class="card-number">${stats.students || 0}</p></div></div>
+            <div class="dashboard-card card-faculty"><div class="card-icon">🧑‍🏫</div><div class="card-info"><p class="card-title">Total Faculty</p><p class="card-number">${stats.faculty || 0}</p></div></div>
+            <div class="dashboard-card card-quizzes"><div class="card-icon">📝</div><div class="card-info"><p class="card-title">Total Quizzes</p><p class="card-number">${stats.quizzes || 0}</p></div></div>
+            <div class="dashboard-card card-active"><div class="card-icon">🔴</div><div class="card-info"><p class="card-title">Active Quizzes</p><p class="card-number">${stats.active_quizzes || 0}</p></div></div>
+        `;
 
     } catch (error) {
         console.error("Error loading dashboard stats:", error);

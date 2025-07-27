@@ -31,18 +31,25 @@
   $quizzes = $stmt->fetchAll();
 ?>
 
+<div class="confirm-modal-overlay" id="delete-quiz-modal">
+    <div class="confirm-modal">
+        <h3>Confirm Quiz Deletion</h3>
+        <p>Are you sure you want to permanently delete this quiz? All associated questions, student attempts, and results will be lost forever. This action cannot be undone.</p>
+        <div class="button-group">
+            <button class="btn-cancel" id="cancel-delete-btn">Cancel</button>
+            <button class="btn-confirm-delete" id="confirm-delete-btn">Yes, Delete Quiz</button>
+        </div>
+    </div>
+</div>
+
 <div class="manage-container">
     <h2>My Quizzes</h2>
-
-    <?php
-    if (isset($_GET['success'])) {
-        echo '<div class="message-box success-message">' . htmlspecialchars($_GET['success']) . '</div>';
-    }
-    ?>
+    <?php if (isset($_GET['success'])) { echo '<div class="message-box success-message">' . htmlspecialchars($_GET['success']) . '</div>'; } ?>
 
     <table class="data-table">
         <thead>
             <tr>
+                <th>Quiz ID</th>
                 <th>Title</th>
                 <th>Course</th>
                 <th>Start Time</th>
@@ -50,32 +57,27 @@
                 <th>Actions</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="quiz-table-body">
             <?php if (empty($quizzes)): ?>
-                <tr>
-                    <td colspan="5" style="text-align:center;">You have not created any quizzes yet.</td>
-                </tr>
+                <tr><td colspan="6" style="text-align:center;">You have not created any quizzes yet.</td></tr>
             <?php else: ?>
                 <?php foreach ($quizzes as $quiz): ?>
-                    <tr>
+                    <tr id="quiz-row-<?php echo $quiz['id']; ?>">
+                        <td><?php echo htmlspecialchars($quiz['id']); ?></td>
                         <td><?php echo htmlspecialchars($quiz['title']); ?></td>
                         <td><?php echo htmlspecialchars($quiz['course_name']); ?></td>
                         <td><?php echo date('M j, Y, g:i A', strtotime($quiz['start_time'])); ?></td>
                         <td>
                             <?php $status_class = strtolower(str_replace(' ', '_', $quiz['status_name'])); ?>
-                            <span class="status-badge status-<?php echo htmlspecialchars($status_class); ?>">
-                                <?php echo htmlspecialchars($quiz['status_name']); ?>
-                            </span>
+                            <span class="status-badge status-<?php echo htmlspecialchars($status_class); ?>"><?php echo htmlspecialchars($quiz['status_name']); ?></span>
                         </td>
                         <td class="action-buttons">
-                            <!-- Button to Add/Edit Questions -->
                             <a href="view_quiz.php?id=<?php echo $quiz['id']; ?>" class="btn-manage">Manage Questions</a>
-                            
-                            <!-- NEW: Button to Start/Control the Live Exam -->
                             <a href="start_quiz.php?id=<?php echo $quiz['id']; ?>" class="btn-start-quiz">Start Quiz</a>
-                            
-                            <!-- Button to Edit Quiz Details -->
                             <a href="edit_quiz.php?id=<?php echo $quiz['id']; ?>" class="btn-edit">Edit Details</a>
+                            <a href="reports.php?quiz_id=<?php echo $quiz['id']; ?>" class="btn-reports">View Reports</a>
+                            <a href="../shared/event_log_report.php?quiz_id=<?php echo $quiz['id']; ?>" class="btn-logs">View Logs</a>
+                            <button class="btn-delete-quiz" data-quiz-id="<?php echo $quiz['id']; ?>">Delete Quiz</button>
                         </td>
                     </tr>
                 <?php endforeach; ?>
@@ -83,6 +85,53 @@
         </tbody>
     </table>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('delete-quiz-modal');
+    const cancelBtn = document.getElementById('cancel-delete-btn');
+    const confirmBtn = document.getElementById('confirm-delete-btn');
+    const quizTableBody = document.getElementById('quiz-table-body');
+    let quizIdToDelete = null;
+
+    // **FIX:** This event listener correctly handles clicks on any delete button in the table.
+    quizTableBody.addEventListener('click', function(e) {
+        if (e.target && e.target.classList.contains('btn-delete-quiz')) {
+            quizIdToDelete = e.target.dataset.quizId;
+            modal.style.display = 'flex';
+        }
+    });
+
+    cancelBtn.addEventListener('click', () => {
+        modal.style.display = 'none';
+        quizIdToDelete = null;
+    });
+
+    confirmBtn.addEventListener('click', async () => {
+        if (quizIdToDelete) {
+            try {
+                const response = await fetch('/nmims_quiz_app/api/faculty/delete_quiz.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ quiz_id: quizIdToDelete })
+                });
+                const result = await response.json();
+                if (result.success) {
+                    // Remove the quiz's row from the table on the screen
+                    document.getElementById(`quiz-row-${quizIdToDelete}`).remove();
+                } else {
+                    throw new Error(result.error || 'Failed to delete quiz.');
+                }
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            } finally {
+                modal.style.display = 'none';
+                quizIdToDelete = null;
+            }
+        }
+    });
+});
+</script>
 
 <?php
   require_once '../../assets/templates/footer.php';

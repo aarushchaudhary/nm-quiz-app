@@ -34,6 +34,8 @@
 <div id="loading-overlay">
     <div class="spinner"></div>
     <p style="text-align:center; font-weight:bold;">Preparing your exam...</p>
+    <!-- **FIX:** Added a dedicated element for the click message -->
+    <p id="click-prompt" style="margin-top: 15px;"></p>
 </div>
 
 <!-- Include the external JavaScript file -->

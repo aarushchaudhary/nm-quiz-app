@@ -2,8 +2,9 @@
 /*
  * api/faculty/update_quiz_status.php
  * Handles updating the status of a quiz (e.g., opening lobby, starting exam).
+ * -- MODIFIED FOR AJAX with robust error handling --
  */
-
+header('Content-Type: application/json'); // Set this first to guarantee JSON output
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
@@ -11,27 +12,25 @@ require_once '../../config/database.php';
 
 // --- Authorization & Request Method Check ---
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user_id']) || $_SESSION['role_id'] != 2) {
-    header('HTTP/1.1 403 Forbidden');
-    exit('Access denied.');
+    http_response_code(403);
+    exit(json_encode(['success' => false, 'error' => 'Access denied.']));
 }
 
-// --- Retrieve and Sanitize Form Data ---
-$quiz_id = filter_input(INPUT_POST, 'quiz_id', FILTER_VALIDATE_INT);
-$new_status_id = filter_input(INPUT_POST, 'new_status_id', FILTER_VALIDATE_INT);
+$data = json_decode(file_get_contents('php://input'), true);
+$quiz_id = $data['quiz_id'] ?? null;
+$new_status_id = $data['new_status_id'] ?? null;
 $faculty_id = $_SESSION['user_id'];
 
 // --- Validation ---
-if (!$quiz_id || !$new_status_id) {
-    header('Location: /nmims_quiz_app/views/faculty/manage_quizzes.php?error=invalid_request');
-    exit();
+if (!is_numeric($quiz_id) || !is_numeric($new_status_id)) {
+    http_response_code(400);
+    exit(json_encode(['success' => false, 'error' => 'Invalid request data.']));
 }
 
-// --- Prepare and Execute SQL UPDATE Statement ---
-// We include `faculty_id` in the WHERE clause as a security measure
-// to ensure a faculty member can only update their own quizzes.
-$sql = "UPDATE quizzes SET status_id = :new_status_id WHERE id = :quiz_id AND faculty_id = :faculty_id";
-
 try {
+    $pdo->beginTransaction();
+    
+    $sql = "UPDATE quizzes SET status_id = :new_status_id WHERE id = :quiz_id AND faculty_id = :faculty_id";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
         ':new_status_id' => $new_status_id,
@@ -39,19 +38,25 @@ try {
         ':faculty_id' => $faculty_id
     ]);
 
-    // Check if any row was actually updated
     if ($stmt->rowCount() > 0) {
-        $message = "Quiz status updated successfully.";
+        // Fetch the new status name to send back to the client
+        $stmt_status = $pdo->prepare("SELECT name FROM exam_statuses WHERE id = ?");
+        $stmt_status->execute([$new_status_id]);
+        $new_status_name = $stmt_status->fetchColumn();
+
+        $pdo->commit();
+        echo json_encode([
+            'success' => true,
+            'message' => 'Quiz status updated successfully.',
+            'new_status_name' => $new_status_name
+        ]);
     } else {
-        $message = "No changes made or you are not authorized.";
+        throw new Exception('No changes made or you are not authorized to perform this action.');
     }
 
-    // Redirect back to the quiz management page
-    header('Location: /nmims_quiz_app/views/faculty/view_quiz.php?id=' . $quiz_id . '&success=' . urlencode($message));
-    exit();
-
-} catch (PDOException $e) {
+} catch (Exception $e) {
+    $pdo->rollBack();
+    http_response_code(500);
     error_log("Quiz status update failed: " . $e->getMessage());
-    header('Location: /nmims_quiz_app/views/faculty/view_quiz.php?id=' . $quiz_id . '&error=db_error');
-    exit();
+    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }

@@ -9,22 +9,12 @@
       exit();
   }
 
-  // --- Fetch Courses from Database ---
-  // This query retrieves all available courses to populate the dropdown select menu.
-  try {
-      $courses_stmt = $pdo->query("SELECT id, name, code FROM courses ORDER BY name ASC");
-      $courses = $courses_stmt->fetchAll();
-  } catch (PDOException $e) {
-      // Handle potential database error
-      error_log("Failed to fetch courses: " . $e->getMessage());
-      $courses = []; // Ensure $courses is an array to prevent errors
-  }
+  // --- Fetch Schools for the first dropdown ---
+  $schools = $pdo->query("SELECT id, name FROM schools ORDER BY name ASC")->fetchAll();
 ?>
 
 <div class="form-container">
   <h2>Quiz Setup</h2>
-
-  <!-- The form submits data to the backend script for processing -->
   <form action="/nmims_quiz_app/api/faculty/create_quiz.php" method="POST">
     
     <div class="form-group">
@@ -32,16 +22,28 @@
       <input type="text" id="title" name="title" placeholder="e.g., Data Structures - Mid Term Exam" required>
     </div>
 
-    <div class="form-group">
-      <label for="course_id">Course</label>
-      <select id="course_id" name="course_id" required>
-        <option value="" disabled selected>Select a course</option>
-        <?php foreach ($courses as $course): ?>
-          <option value="<?php echo htmlspecialchars($course['id']); ?>">
-            <?php echo htmlspecialchars($course['name']) . ' (' . htmlspecialchars($course['code']) . ')'; ?>
-          </option>
-        <?php endforeach; ?>
-      </select>
+    <div class="form-row">
+        <div class="form-group">
+            <label for="school_id">School</label>
+            <select id="school_id" name="school_id" required>
+                <option value="" disabled selected>-- Select a School --</option>
+                <?php foreach ($schools as $school): ?>
+                <option value="<?php echo $school['id']; ?>"><?php echo htmlspecialchars($school['name']); ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="course_id">Course</label>
+            <select id="course_id" name="course_id" required disabled>
+                <option value="">-- Select School First --</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="graduation_year">Graduation Year / Batch</label>
+            <select id="graduation_year" name="graduation_year" required disabled>
+                <option value="">-- Select Course First --</option>
+            </select>
+        </div>
     </div>
 
     <div class="form-row">
@@ -58,33 +60,64 @@
         <input type="number" id="duration" name="duration_minutes" min="1" placeholder="e.g., 60" required>
       </div>
     </div>
-
     <hr style="margin: 25px 0;">
-
     <h3 style="text-align: center; margin-bottom: 20px;">Question Configuration</h3>
-    <p style="text-align: center; margin-top: -15px; margin-bottom: 20px; color: #666;">Define the number of questions to be randomly selected for each difficulty.</p>
-    
     <div class="form-row">
-      <div class="form-group">
-        <label for="easy_count">Easy Questions</label>
-        <input type="number" id="easy_count" name="config_easy_count" min="0" value="0" required>
-      </div>
-      <div class="form-group">
-        <label for="medium_count">Medium Questions</label>
-        <input type="number" id="medium_count" name="config_medium_count" min="0" value="0" required>
-      </div>
-      <div class="form-group">
-        <label for="hard_count">Hard Questions</label>
-        <input type="number" id="hard_count" name="config_hard_count" min="0" value="0" required>
-      </div>
+      <div class="form-group"><label for="easy_count">Easy Questions</label><input type="number" id="easy_count" name="config_easy_count" min="0" value="0" required></div>
+      <div class="form-group"><label for="medium_count">Medium Questions</label><input type="number" id="medium_count" name="config_medium_count" min="0" value="0" required></div>
+      <div class="form-group"><label for="hard_count">Hard Questions</label><input type="number" id="hard_count" name="config_hard_count" min="0" value="0" required></div>
     </div>
-
     <div class="form-group" style="text-align: center; margin-top: 30px;">
       <button type="submit" class="button-red" style="width: auto; padding: 12px 40px;">Create Quiz</button>
     </div>
-
   </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const schoolSelect = document.getElementById('school_id');
+    const courseSelect = document.getElementById('course_id');
+    const yearSelect = document.getElementById('graduation_year');
+
+    schoolSelect.addEventListener('change', async function() {
+        const schoolId = this.value;
+        courseSelect.innerHTML = '<option value="">Loading...</option>';
+        courseSelect.disabled = true;
+        yearSelect.innerHTML = '<option value="">-- Select Course First --</option>';
+        yearSelect.disabled = true;
+
+        if (!schoolId) return;
+
+        const response = await fetch(`/nmims_quiz_app/api/shared/get_courses_by_school.php?school_id=${schoolId}`);
+        const courses = await response.json();
+        
+        courseSelect.innerHTML = '<option value="" disabled selected>-- Select a Course --</option>';
+        courses.forEach(course => {
+            const option = new Option(course.name, course.id);
+            courseSelect.add(option);
+        });
+        courseSelect.disabled = false;
+    });
+
+    courseSelect.addEventListener('change', async function() {
+        const courseId = this.value;
+        yearSelect.innerHTML = '<option value="">Loading...</option>';
+        yearSelect.disabled = true;
+
+        if (!courseId) return;
+
+        const response = await fetch(`/nmims_quiz_app/api/shared/get_years_by_course.php?course_id=${courseId}`);
+        const years = await response.json();
+        
+        yearSelect.innerHTML = '<option value="" disabled selected>-- Select a Year --</option>';
+        years.forEach(year => {
+            const option = new Option(year, year);
+            yearSelect.add(option);
+        });
+        yearSelect.disabled = false;
+    });
+});
+</script>
 
 <?php
   require_once '../../assets/templates/footer.php';

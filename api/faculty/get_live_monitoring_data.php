@@ -26,10 +26,18 @@ try {
     $quiz_config = $stmt_quiz->fetch();
     $total_questions = ($quiz_config['config_easy_count'] ?? 0) + ($quiz_config['config_medium_count'] ?? 0) + ($quiz_config['config_hard_count'] ?? 0);
 
-    // 2. Fetch all students associated with the quiz's course
-    $sql = "SELECT s.user_id, s.name, s.sap_id, sa.id as attempt_id, sa.submitted_at, sa.is_disqualified
+    // 2. Fetch all students associated with the quiz's course AND graduation year
+    // **FIX:** The JOIN condition now correctly includes `s.graduation_year = q.graduation_year`
+    // to ensure only students from the target batch are shown.
+    $sql = "SELECT 
+                s.user_id, 
+                s.name, 
+                s.sap_id, 
+                sa.id as attempt_id, 
+                sa.submitted_at, 
+                sa.is_disqualified
             FROM students s
-            JOIN quizzes q ON s.course_id = q.course_id
+            JOIN quizzes q ON s.course_id = q.course_id AND s.graduation_year = q.graduation_year
             LEFT JOIN student_attempts sa ON s.user_id = sa.student_id AND sa.quiz_id = q.id
             WHERE q.id = ?";
     $stmt = $pdo->prepare($sql);
