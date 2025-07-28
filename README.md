@@ -1,647 +1,281 @@
-# NMIMS Quiz Application
+# NM Quiz App 📚
 
-A comprehensive web-based quiz application designed for NMIMS (Narsee Monjee Institute of Management Studies), featuring real-time exam monitoring, automated grading, multi-format question support, and advanced proctoring capabilities.
+A comprehensive web-based quiz application designed for educational institutions, featuring real-time monitoring, automated grading, and advanced proctoring capabilities.
 
-## 🎯 Overview
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)
+![MySQL](https://img.shields.io/badge/MySQL-5.7%2B-orange.svg)
 
-The NMIMS Quiz Application is a full-featured examination platform that enables faculty to create and manage online quizzes while providing students with a secure and intuitive interface for taking exams. The system includes real-time monitoring, automated grading for objective questions, and comprehensive reporting features.
+## 🌟 Features
 
-## ✨ Key Features
+### For Students
+- **Real-time Quiz Participation**: Join quiz lobbies and take exams in real-time
+- **Multiple Question Types**: Support for MCQ, descriptive, and other question formats
+- **Progress Tracking**: Monitor your quiz progress and submission status
+- **Instant Results**: View results immediately after quiz completion (for auto-graded questions)
+- **Secure Exam Environment**: Built-in proctoring features to ensure academic integrity
 
-### 👨‍🎓 Student Portal
-- **Secure Authentication**: Role-based login system with session management
-- **Quiz Lobby System**: Real-time waiting room for synchronized exam starts
-- **Multiple Question Formats**: 
-  - Multiple Choice Questions (MCQ)
-  - Descriptive/Essay questions
-  - True/False questions
-  - Fill in the blanks
-- **Exam Proctoring**: 
-  - Fullscreen enforcement during exams
-  - Tab/window switching detection and logging
-  - Copy-paste prevention
-  - Right-click disabled
-- **Real-time Progress Saving**: Auto-save answers to prevent data loss
-- **Instant Results**: View scores immediately for auto-graded questions
-- **Answer Review**: Review submitted answers after exam completion
+### For Faculty
+- **Quiz Creation & Management**: Create, edit, and manage quizzes with ease
+- **Bulk Question Upload**: Import questions via Excel spreadsheets using provided templates
+- **Real-time Monitoring**: Track student progress during live exams
+- **Automated Grading**: Automatic grading for objective questions
+- **Manual Evaluation**: Interface for grading descriptive answers
+- **Comprehensive Reports**: Export results and generate detailed analytics
+- **Exam Control**: Start, pause, or stop exams in real-time
 
-### 👨‍🏫 Faculty Portal
-- **Quiz Management**:
-  - Create quizzes with multiple sections
-  - Set time limits and attempt restrictions
-  - Configure question shuffling and randomization
-  - Schedule quizzes with start/end times
-- **Question Bank**:
-  - Add questions individually or bulk upload via Excel
-  - Categorize questions by topic/difficulty
-  - Reuse questions across multiple quizzes
-- **Live Monitoring**:
-  - Real-time dashboard showing student progress
-  - View submission status and time remaining
-  - Monitor suspicious activities (tab switches, etc.)
-- **Grading System**:
-  - Automated grading for objective questions
-  - Manual evaluation interface for descriptive answers
-  - Partial marking support
-  - Grade export functionality
-- **Analytics & Reports**:
-  - Detailed performance analytics
-  - Question-wise analysis
-  - Class performance comparison
-  - Export results to Excel/CSV
+### For Placement Committee
+- **Specialized Assessments**: Create placement-specific tests and aptitude exams
+- **Candidate Management**: Track and evaluate placement candidates
+- **Company-wise Reports**: Generate reports for different recruiting companies
 
-### 👨‍💼 Administrator Panel
-- **User Management**:
-  - Bulk user creation via Excel upload
-  - Role assignment and permissions
-  - Password reset functionality
-  - User activity logs
-- **System Monitoring**:
-  - Active quiz overview
-  - System resource usage
-  - Error logs and debugging tools
-- **Configuration**:
-  - Global settings management
-  - Email notification setup
-  - Backup and restore functionality
+### For Administrators
+- **User Management**: Add, edit, and manage student and faculty accounts
+- **Bulk User Upload**: Import users via Excel templates
+- **System Overview**: Monitor all active quizzes and system usage
+- **Access Control**: Manage permissions and user roles
 
 ## 🛠️ Technology Stack
 
-### Frontend
-- **HTML5**: Semantic markup for better accessibility
-- **CSS3**: Modern styling with responsive design
-- **JavaScript (ES6+)**: Interactive features and AJAX calls
-- **AJAX**: Asynchronous data loading for better UX
+- **Frontend**: HTML5, CSS3, JavaScript (ES6+)
+- **Backend**: PHP 7.4+
+- **Database**: MySQL/MariaDB
+- **Libraries**:
+  - PHPSpreadsheet (Excel file handling)
+  - Chart.js (Data visualization)
+- **Security**: Session-based authentication, prepared statements for SQL injection prevention
 
-### Backend
-- **PHP 7.4+**: Server-side logic and API endpoints
-- **MySQL/MariaDB**: Relational database for data storage
-- **PDO**: Secure database interactions with prepared statements
-
-### Libraries & Frameworks
-- **PHPSpreadsheet**: Excel file import/export functionality
-- **Chart.js**: Data visualization for analytics
-- **jQuery**: DOM manipulation and AJAX (if used)
-- **Bootstrap**: Responsive UI components (if used)
-
-## 📁 Detailed Project Structure
+## 📁 Project Structure
 
 ```
-nm-quiz-app/
-├── api/                          # Backend API endpoints
-│   ├── admin/                    # Administrator endpoints
-│   │   ├── manage_users.php      # User CRUD operations
-│   │   ├── system_config.php     # System settings
-│   │   └── activity_logs.php     # User activity tracking
-│   ├── faculty/                  # Faculty endpoints
-│   │   ├── create_quiz.php       # Quiz creation
-│   │   ├── upload_questions.php  # Bulk question upload
-│   │   ├── start_exam.php        # Exam control
-│   │   ├── monitor_progress.php  # Live monitoring
-│   │   ├── evaluate_descriptive.php # Manual grading
-│   │   └── export_results.php    # Result export
-│   ├── student/                  # Student endpoints
-│   │   ├── join_lobby.php        # Join exam lobby
-│   │   ├── fetch_questions.php   # Get quiz questions
-│   │   ├── submit_answer.php     # Save answers
-│   │   ├── log_event.php         # Log proctoring events
-│   │   └── finish_exam.php       # Submit final exam
-│   ├── shared/                   # Common endpoints
-│   │   ├── get_quiz_details.php  # Quiz information
-│   │   └── get_results.php       # Result retrieval
-│   └── auth.php                  # Authentication handler
-│
-├── assets/                       # Static resources
-│   ├── css/                      # Stylesheets
-│   │   ├── style.css            # Global styles
-│   │   ├── login.css            # Login page styles
-│   │   ├── dashboard.css        # Dashboard styles
-│   │   ├── exam.css             # Exam interface styles
-│   │   └── responsive.css       # Mobile responsiveness
+NMIMS_QUIZ_APP/
+├── api/                          # Backend PHP scripts for AJAX calls
+│   ├── admin/                   # Admin-specific API endpoints
+│   ├── faculty/                 # Faculty-specific API endpoints
+│   ├── placecom/               # Placement committee API endpoints
+│   ├── shared/                  # Shared API endpoints
+│   ├── student/                 # Student-specific API endpoints
+│   └── auth.php                 # Authentication handler
+├── assets/                       # Static files
+│   ├── css/                     # Stylesheets
+│   ├── images/                  # Images and icons
 │   ├── js/                      # JavaScript files
-│   │   ├── main.js              # Common functions
-│   │   ├── admin.js             # Admin functionality
-│   │   ├── faculty.js           # Faculty features
-│   │   ├── student.js           # Student features
-│   │   ├── exam_proctoring.js   # Proctoring logic
-│   │   ├── timer.js             # Exam timer
-│   │   └── charts.js            # Chart rendering
-│   └── images/                  # Images and icons
-│       ├── logo.png             # Application logo
-│       └── icons/               # UI icons
-│
-├── config/                      # Configuration files
-│   ├── database.php             # Database connection
-│   ├── constants.php            # Application constants
-│   └── functions.php            # Helper functions
-│
-├── database/                    # Database files
-│   ├── schema.sql              # Database structure
-│   ├── seed_data.sql           # Initial data
-│   └── migrations/             # Database updates
-│
-├── lib/                        # Third-party libraries
-│   ├── phpspreadsheet/         # Excel handling
-│   ├── phpmailer/              # Email functionality
-│   └── chartjs/                # Chart library
-│
-├── templates/                  # Reusable PHP components
-│   ├── header.php              # Common header
-│   ├── footer.php              # Common footer
-│   ├── navbar.php              # Navigation bar
-│   ├── sidebar_admin.php       # Admin sidebar
-│   ├── sidebar_faculty.php     # Faculty sidebar
-│   └── sidebar_student.php     # Student sidebar
-│
-├── uploads/                    # File uploads directory
-│   ├── questions/              # Question attachments
-│   ├── profiles/               # User profile pictures
-│   └── temp/                   # Temporary files
-│
-├── views/                      # User interface pages
-│   ├── admin/                  # Admin pages
-│   │   ├── dashboard.php       # Admin dashboard
-│   │   ├── users.php           # User management
-│   │   └── reports.php         # System reports
-│   ├── faculty/                # Faculty pages
-│   │   ├── dashboard.php       # Faculty dashboard
-│   │   ├── create_quiz.php     # Quiz creation form
-│   │   ├── manage_quizzes.php  # Quiz list
-│   │   ├── monitor_exam.php    # Live monitoring
-│   │   └── grade_answers.php   # Grading interface
-│   ├── student/                # Student pages
-│   │   ├── dashboard.php       # Student dashboard
-│   │   ├── lobby.php           # Exam waiting room
-│   │   ├── exam.php            # Exam interface
-│   │   └── results.php         # Result view
-│   └── shared/                 # Shared pages
-│       └── profile.php         # User profile
-│
-├── .htaccess                   # Apache configuration
-├── .gitignore                  # Git ignore file
-├── composer.json               # PHP dependencies
-├── index.php                   # Application entry point
-├── login.php                   # Login page
-├── logout.php                  # Logout handler
-├── README.md                   # Project documentation
-└── LICENSE                     # MIT License
-
+│   └── templates/               # Template files
+│       ├── footer.php          # Footer template
+│       ├── header.php          # Header template
+│       ├── question_template.xlsx  # Excel template for bulk question upload
+│       └── student_template.xlsx   # Excel template for bulk student upload
+├── config/                       # Configuration files
+├── lib/                          # External libraries
+│   ├── chartjs/                 # Chart.js library
+│   ├── vendor/                  # Composer dependencies
+|   ├── composer.json            # Composer configuration
+|   └── composer.lock            # Composer lock file
+├── views/                        # User-facing pages
+│   ├── admin/                   # Admin dashboard and pages
+│   ├── faculty/                 # Faculty dashboard and pages
+│   ├── placecom/               # Placement committee pages
+│   ├── shared/                  # Shared views
+│   └── student/                 # Student dashboard and pages
+├── index.php                     # Application entry point
+├── LICENSE                       # MIT License file
+├── login.php                     # Login page
+├── logout.php                    # Logout handler
+├── README.md                     # This file
+└── schema.sql                    # Database schema
 ```
 
-## 🚀 Installation Guide
+## 🚀 Installation
 
 ### Prerequisites
-- **Web Server**: Apache 2.4+ with mod_rewrite enabled or Nginx
-- **PHP**: Version 7.4 or higher with extensions:
-  - PDO_MySQL
-  - JSON
-  - Session
-  - FileInfo
-  - GD (for image processing)
-  - ZIP (for Excel handling)
-- **Database**: MySQL 5.7+ or MariaDB 10.3+
-- **Composer**: For managing PHP dependencies
+- PHP 7.4 or higher
+- MySQL 5.7 or higher
+- Apache/Nginx web server
+- Composer (for PHP dependencies)
 
-### Step-by-Step Installation
+### Steps
 
-1. **Clone the Repository**
+1. **Clone the repository**
    ```bash
    git clone https://github.com/aarushchaudhary/nm-quiz-app.git
    cd nm-quiz-app
    ```
 
-2. **Install Dependencies**
+2. **Install PHP dependencies**
    ```bash
    composer install
    ```
 
-3. **Database Setup**
-   ```bash
-   # Create database
-   mysql -u root -p -e "CREATE DATABASE nmims_quiz_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-   
-   # Import schema
-   mysql -u root -p nmims_quiz_db < database/schema.sql
-   
-   # Import seed data (optional)
-   mysql -u root -p nmims_quiz_db < database/seed_data.sql
+3. **Create database**
+   ```sql
+   CREATE DATABASE nmims_quiz_db;
    ```
 
-4. **Configure Application**
+4. **Import database schema**
    ```bash
-   # Copy example configuration
-   cp config/database.php.example config/database.php
-   
-   # Edit database configuration
-   nano config/database.php
+   mysql -u your_username -p nmims_quiz_db < schema.sql
    ```
-   
-   Update the following in `config/database.php`:
+
+5. **Configure database connection**
+   - Copy `config/database.php.example` to `config/database.php`
+   - Update database credentials:
    ```php
-   <?php
    define('DB_HOST', 'localhost');
    define('DB_NAME', 'nmims_quiz_db');
-   define('DB_USER', 'your_db_user');
-   define('DB_PASS', 'your_db_password');
-   define('DB_CHARSET', 'utf8mb4');
+   define('DB_USER', 'your_username');
+   define('DB_PASS', 'your_password');
    ```
 
-5. **Set Directory Permissions**
+6. **Set proper permissions**
    ```bash
-   # Set appropriate permissions
-   chmod -R 755 .
-   chmod -R 777 uploads/
-   chmod -R 777 uploads/questions/
-   chmod -R 777 uploads/profiles/
-   chmod -R 777 uploads/temp/
+   chmod 755 -R nmims_quiz_app/
+   chmod 777 uploads/  # If you have an uploads directory
    ```
 
-6. **Configure Web Server**
-
-   **For Apache:**
-   Create/edit `.htaccess` in the root directory:
-   ```apache
-   RewriteEngine On
-   RewriteCond %{REQUEST_FILENAME} !-f
-   RewriteCond %{REQUEST_FILENAME} !-d
-   RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]
-   
-   # Security headers
-   Header set X-Frame-Options "SAMEORIGIN"
-   Header set X-Content-Type-Options "nosniff"
-   Header set X-XSS-Protection "1; mode=block"
-   ```
-
-   **For Nginx:**
-   ```nginx
-   location / {
-       try_files $uri $uri/ /index.php?$query_string;
-   }
-   
-   location ~ \.php$ {
-       fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
-       fastcgi_index index.php;
-       include fastcgi_params;
-   }
-   ```
-
-7. **Initial Setup**
-   - Navigate to `http://your-domain.com`
-   - Login with default admin credentials:
-     - Username: `admin`
-     - Password: `Admin@123`
-   - **Important**: Change the admin password immediately!
+7. **Configure web server**
+   - Point your web server's document root to the `nmims_quiz_app` directory
+   - Ensure mod_rewrite is enabled for Apache
 
 ## ⚙️ Configuration
 
-### Application Settings (`config/constants.php`)
+### Application Settings
+Edit `config/constants.php` to configure:
+- Session timeout duration
+- Maximum file upload size
+- Quiz timer settings
+- Proctoring strictness levels
+
+### Email Configuration
+Configure email settings for notifications:
 ```php
-// Session Configuration
-define('SESSION_LIFETIME', 3600); // 1 hour
-define('SESSION_NAME', 'NMIMS_QUIZ_SESSION');
-
-// Upload Limits
-define('MAX_FILE_SIZE', 10485760); // 10MB
-define('ALLOWED_IMAGE_TYPES', ['jpg', 'jpeg', 'png', 'gif']);
-define('ALLOWED_DOCUMENT_TYPES', ['pdf', 'doc', 'docx']);
-
-// Quiz Settings
-define('DEFAULT_QUIZ_DURATION', 60); // minutes
-define('QUESTION_AUTO_SAVE_INTERVAL', 30); // seconds
-define('MAX_TAB_SWITCHES', 3); // before warning
-
-// Proctoring Settings
-define('ENABLE_FULLSCREEN', true);
-define('ENABLE_TAB_DETECTION', true);
-define('ENABLE_COPY_PROTECTION', true);
-define('LOG_PROCTORING_EVENTS', true);
-
-// Email Configuration
-define('SMTP_HOST', 'smtp.gmail.com');
+define('SMTP_HOST', 'smtp.example.com');
 define('SMTP_PORT', 587);
-define('SMTP_USERNAME', 'your-email@gmail.com');
-define('SMTP_PASSWORD', 'your-app-password');
-define('SMTP_ENCRYPTION', 'tls');
-define('FROM_EMAIL', 'noreply@nmims.edu');
-define('FROM_NAME', 'NMIMS Quiz System');
+define('SMTP_USER', 'your_email@example.com');
+define('SMTP_PASS', 'your_password');
 ```
 
-### Database Tables Overview
-- `users` - User accounts with roles
-- `quizzes` - Quiz metadata
-- `questions` - Question bank
-- `quiz_questions` - Quiz-question mapping
-- `answers` - Student answers
-- `results` - Quiz results
-- `proctoring_logs` - Security event logs
-- `activity_logs` - User activity tracking
+## 📖 Usage
 
-## 📱 Usage Guide
+### Initial Setup
+1. Access the application at `http://your-domain.com`
+2. Log in with the default admin credentials:
+   - Username: `admin`
+   - Password: `admin123` (Change immediately!)
+3. Create faculty and student accounts
+4. Faculty can start creating quizzes
 
-### For Administrators
+### Creating a Quiz (Faculty)
+1. Log in with faculty credentials
+2. Navigate to "Create Quiz"
+3. Fill in quiz details:
+   - Title and description
+   - Time limit and attempt restrictions
+   - Question shuffle settings
+4. Add questions manually or upload via Excel
+5. Save and publish the quiz
 
-1. **User Management**
-   - Navigate to Admin Dashboard → Users
-   - Add users individually or bulk upload via Excel
-   - Excel format: `Name, Email, Role, Password`
+### Taking a Quiz (Student)
+1. Log in with student credentials
+2. View available quizzes on dashboard
+3. Click "Join Lobby" for the desired quiz
+4. Wait for faculty to start the exam
+5. Complete all questions within the time limit
+6. Submit the quiz
 
-2. **System Monitoring**
-   - View real-time system statistics
-   - Monitor active quizzes and participants
-   - Check error logs for troubleshooting
+## 👥 User Roles
 
-### For Faculty
+### Administrator
+- Full system access
+- User management (CRUD operations)
+- System configuration
+- View all quizzes and results
 
-1. **Creating a Quiz**
-   - Go to Faculty Dashboard → Create Quiz
-   - Fill in quiz details:
-     - Title and description
-     - Duration and attempts allowed
-     - Start and end date/time
-     - Passing percentage
-   - Add questions:
-     - Manual entry for individual questions
-     - Excel upload for bulk import
-     - Set marks and negative marking
+### Faculty
+- Create and manage quizzes
+- Monitor live exams
+- Grade descriptive answers
+- Generate reports
+- Export results
 
-2. **Managing Live Exams**
-   - Open Monitor Exam page during quiz
-   - View real-time student progress
-   - Handle technical issues
-   - Stop/extend exam if needed
+### Placement Committee
+- Create placement-specific assessments
+- Manage recruitment drives
+- Generate company-wise reports
+- Track candidate performance
 
-3. **Grading**
-   - Auto-graded MCQs appear instantly
-   - Review descriptive answers
-   - Provide feedback and partial marks
-   - Export results to Excel
-
-### For Students
-
-1. **Taking a Quiz**
-   - View available quizzes on dashboard
-   - Click "Attempt Quiz"
-   - Join the lobby and wait for start
-   - Complete all questions
-   - Review before final submission
-
-2. **During Exam**
-   - Timer shows remaining time
-   - Navigation panel shows question status
-   - Auto-save prevents data loss
-   - Flag questions for review
+### Student
+- Take assigned quizzes
+- View results and feedback
+- Track quiz history
 
 ## 🔒 Security Features
 
-### Authentication & Authorization
-- Secure password hashing using `password_hash()`
-- Session-based authentication with timeout
-- Role-based access control (RBAC)
-- CSRF token protection on forms
+- **Authentication**: Session-based authentication with secure password hashing
+- **SQL Injection Prevention**: Prepared statements for all database queries
+- **XSS Protection**: Input sanitization and output escaping
+- **CSRF Protection**: Token-based form submissions
+- **Exam Proctoring**:
+  - Fullscreen enforcement
+  - Tab switching detection
+  - Copy-paste prevention
+  - Right-click disabled during exams
 
-### Exam Security
-- **Proctoring Features**:
-  - Fullscreen mode enforcement
-  - Browser tab/window switch detection
-  - Right-click context menu disabled
-  - Text selection and copy disabled
-  - Developer tools detection
-  - Print screen prevention (limited)
+## 📡 API Documentation
 
-### Data Security
-- SQL injection prevention via prepared statements
-- XSS protection through output escaping
-- File upload validation and sanitization
-- Secure session configuration
-- HTTPS enforcement recommended
-
-## 📊 API Documentation
-
-### Authentication Endpoints
-
-#### Login
-```http
+### Authentication
+```
 POST /api/auth.php
-Content-Type: application/json
-
-{
-    "username": "student@nmims.edu",
-    "password": "password123",
-    "role": "student"
-}
-
-Response:
-{
-    "success": true,
-    "message": "Login successful",
-    "data": {
-        "user_id": 1,
-        "name": "John Doe",
-        "role": "student",
-        "session_token": "..."
-    }
-}
+Parameters: username, password, role
+Response: {success: boolean, message: string, user_data: object}
 ```
 
-### Student API Endpoints
-
-#### Get Available Quizzes
-```http
-GET /api/student/get_quizzes.php
-Authorization: Bearer {session_token}
-
-Response:
-{
-    "success": true,
-    "quizzes": [
-        {
-            "quiz_id": 1,
-            "title": "Midterm Exam",
-            "duration": 60,
-            "total_marks": 100,
-            "start_time": "2024-01-15 10:00:00",
-            "end_time": "2024-01-15 12:00:00",
-            "attempts_allowed": 1,
-            "attempts_used": 0
-        }
-    ]
-}
+### Faculty Endpoints
 ```
-
-#### Submit Answer
-```http
-POST /api/student/submit_answer.php
-Authorization: Bearer {session_token}
-Content-Type: application/json
-
-{
-    "quiz_id": 1,
-    "question_id": 5,
-    "answer": "Option A",
-    "time_taken": 45
-}
-```
-
-### Faculty API Endpoints
-
-#### Create Quiz
-```http
 POST /api/faculty/create_quiz.php
-Authorization: Bearer {session_token}
-Content-Type: application/json
-
-{
-    "title": "Final Exam",
-    "description": "End semester examination",
-    "duration": 120,
-    "total_marks": 100,
-    "passing_marks": 40,
-    "negative_marking": true,
-    "shuffle_questions": true,
-    "show_results": "after_evaluation",
-    "start_time": "2024-01-20 10:00:00",
-    "end_time": "2024-01-20 14:00:00"
-}
+GET  /api/faculty/get_quizzes.php
+POST /api/faculty/start_exam.php
+GET  /api/faculty/monitor_progress.php
 ```
 
-#### Monitor Progress
-```http
-GET /api/faculty/monitor_progress.php?quiz_id=1
-Authorization: Bearer {session_token}
-
-Response:
-{
-    "success": true,
-    "participants": [
-        {
-            "student_id": 1,
-            "name": "John Doe",
-            "start_time": "10:05:23",
-            "progress": "15/25 questions",
-            "status": "in_progress",
-            "tab_switches": 0,
-            "time_remaining": "45:30"
-        }
-    ]
-}
+### Student Endpoints
 ```
-
-## 🧪 Testing
-
-### Manual Testing Checklist
-- [ ] User registration and login
-- [ ] Quiz creation with various question types
-- [ ] Excel upload functionality
-- [ ] Student exam flow
-- [ ] Proctoring features
-- [ ] Result calculation
-- [ ] Report generation
-- [ ] Mobile responsiveness
-
-### Automated Testing (Future Enhancement)
-```bash
-# Run PHP unit tests
-./vendor/bin/phpunit tests/
-
-# Run JavaScript tests
-npm test
+POST /api/student/join_lobby.php
+GET  /api/student/fetch_questions.php
+POST /api/student/submit_answer.php
+POST /api/student/finish_exam.php
 ```
-
-## 🚦 Troubleshooting
-
-### Common Issues
-
-1. **"Access Denied" Error**
-   - Check file permissions
-   - Verify `.htaccess` configuration
-   - Ensure mod_rewrite is enabled
-
-2. **Database Connection Failed**
-   - Verify database credentials
-   - Check if MySQL service is running
-   - Ensure database exists
-
-3. **Excel Upload Not Working**
-   - Check PHP upload_max_filesize
-   - Verify PHPSpreadsheet is installed
-   - Check file permissions on uploads/
-
-4. **Session Timeout Issues**
-   - Adjust SESSION_LIFETIME in constants.php
-   - Check PHP session.gc_maxlifetime
-   - Verify session save path permissions
-
-5. **Email Notifications Not Sending**
-   - Verify SMTP credentials
-   - Check firewall settings
-   - Enable "Less secure app access" for Gmail
 
 ## 🤝 Contributing
 
-We welcome contributions from the community! Please follow these guidelines:
+We welcome contributions! Please follow these steps:
 
-### Development Workflow
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Make your changes
-4. Write/update tests
-5. Commit changes (`git commit -m 'Add AmazingFeature'`)
-6. Push to branch (`git push origin feature/AmazingFeature`)
-7. Create a Pull Request
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ### Coding Standards
-- **PHP**: Follow PSR-12 coding standard
-- **JavaScript**: Use ESLint configuration
-- **Database**: Use meaningful table/column names
-- **Comments**: Write clear, concise comments
-- **Git**: Write descriptive commit messages
+- Follow PSR-12 for PHP code
+- Use meaningful variable and function names
+- Comment complex logic
+- Write unit tests for new features
 
-### Pull Request Guidelines
-- Describe the changes clearly
-- Reference any related issues
-- Include screenshots for UI changes
-- Ensure all tests pass
-- Update documentation as needed
-
-## 📈 Future Enhancements
-
-- [ ] AI-powered question generation
-- [ ] Video proctoring integration
-- [ ] Mobile app development
-- [ ] Advanced analytics dashboard
-- [ ] Question bank sharing between faculty
-- [ ] Integration with LMS systems
-- [ ] Multi-language support
-- [ ] Offline exam capability
-- [ ] Blockchain-based certificate generation
-
-## 📄 License
+## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 👥 Team
-
-- **Project Lead**: Aarush Chaudhary
-- **Contributors**: [List of contributors]
-
 ## 🙏 Acknowledgments
 
-- NMIMS for project requirements and support
-- PHPSpreadsheet team for Excel handling library
-- Chart.js contributors for visualization tools
-- Open source community for various libraries used
-- Beta testers and early adopters
+- NMIMS for the project requirements
+- PHPSpreadsheet contributors
+- Chart.js team
+- All contributors to this project
 
 ## 📞 Support
 
-For support, please use the following channels:
-
-- **Issues**: [GitHub Issues](https://github.com/aarushchaudhary/nm-quiz-app/issues)
-- **Documentation**: [Wiki](https://github.com/aarushchaudhary/nm-quiz-app/wiki)
+For issues and feature requests, please [create an issue](https://github.com/aarushchaudhary/nm-quiz-app/issues) on GitHub.
 
 ---
 
-**Note**: This is an educational project. For production deployment, ensure proper security auditing, penetration testing, and compliance with data protection regulations.
-
-**Version**: 1.0.0  
-**Last Updated**: July 2025
+**Note**: This is an educational project. For production use, ensure proper security auditing and testing.
