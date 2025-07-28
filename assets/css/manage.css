@@ -993,3 +993,24 @@
 .btn-delete-quiz { background-color: #dc3545; } /* Red */
 
 /* ... (rest of the file) ... */
+/* ... (all other existing styles) ... */
+
+/* ==========================================================================
+   Forms (Create Quiz, Add User, etc.)
+   ========================================================================== */
+
+/* ... (other form styles) ... */
+
+.form-group select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+    background-color: #f9f9f9;
+    font-family: inherit;
+    /* **NEW:** Makes the dropdown taller if there are many options */
+    height: 48px; /* Adjust this value as needed */
+}
+
+/* ... (rest of the CSS file) ... */

@@ -1,5 +1,9 @@
 <?php
-  $pageTitle = 'Placement Dashboard';
+  session_start();
+  // Dynamically set the page title
+  $roleName = isset($_SESSION['role_name']) ? ucfirst($_SESSION['role_name']) : 'Placement';
+  $pageTitle = $roleName . ' Dashboard';
+  
   $customCSS = 'manage.css';
   require_once '../../assets/templates/header.php';
 
@@ -9,24 +13,18 @@
       exit();
   }
   
-  $placecomName = isset($_SESSION['name']) ? htmlspecialchars($_SESSION['name']) : 'Placement Officer';
+  $placecomName = isset($_SESSION['full_name']) ? htmlspecialchars($_SESSION['full_name']) : 'Placement Officer';
 ?>
 
 <div class="manage-container">
     <h2 style="margin-bottom: 10px;">Welcome, <?php echo $placecomName; ?>!</h2>
     <p style="text-align:center; color: #555; margin-top:0;">From here you can access reports for all quizzes conducted on the platform.</p>
     
-    <!-- Grid for summary cards (can be implemented later like the admin dashboard) -->
-    <div class="dashboard-grid">
-        <!-- Cards can be added here -->
-    </div>
-
-    <!-- Links to other pages -->
     <div class="section-box" style="text-align:center;">
         <h3>Placement Tools</h3>
         <div class="button-group" style="justify-content:center;">
             <a href="reports.php" class="button-red" style="width:auto;">View All Quiz Reports</a>
-            <a href="/nmims_quiz_app/views/shared/event_log_report.php" class="button-red" style="width:auto; background-color:#6c757d;">View Event Logs</a>
+            <a href="../shared/event_log_report.php" class="button-red" style="width:auto; background-color:#6c757d;">View Event Logs</a>
         </div>
     </div>
 </div>

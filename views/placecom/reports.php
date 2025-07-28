@@ -4,8 +4,8 @@
   require_once '../../assets/templates/header.php';
   require_once '../../config/database.php';
 
-  // --- Authorization Check ---
-  if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 3) {
+  // --- Authorization Check (Allows any non-student role) ---
+  if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] == 4) {
       header('Location: /nmims_quiz_app/login.php');
       exit();
   }
@@ -49,7 +49,6 @@
 </div>
 
 <script>
-// This JavaScript is identical to the faculty reports page, but it will call a different API endpoint.
 document.getElementById('quiz_id_selector').addEventListener('change', async function() {
     const quizId = this.value;
     const reportContent = document.getElementById('report-content');
@@ -64,10 +63,8 @@ document.getElementById('quiz_id_selector').addEventListener('change', async fun
     }
 
     try {
-        // Calls the new API endpoint for Placecom
         const response = await fetch(`/nmims_quiz_app/api/placecom/get_all_quiz_results.php?quiz_id=${quizId}`);
         if (!response.ok) throw new Error('Failed to fetch results.');
-
         const data = await response.json();
         
         document.getElementById('summary-attempts').textContent = data.summary.total_attempts;
@@ -94,7 +91,9 @@ document.getElementById('quiz_id_selector').addEventListener('change', async fun
 
         placeholder.style.display = 'none';
         reportContent.style.display = 'block';
-        exportBtn.href = `/nmims_quiz_app/api/faculty/export_results.php?quiz_id=${quizId}`; // Can reuse the same export script
+        
+        // **FIX:** The export button now points to the new shared script.
+        exportBtn.href = `/nmims_quiz_app/api/shared/export_all_results.php?quiz_id=${quizId}`;
         exportBtn.style.display = 'inline-block';
 
     } catch (error) {

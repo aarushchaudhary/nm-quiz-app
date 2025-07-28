@@ -4,17 +4,17 @@
   require_once '../../assets/templates/header.php';
   require_once '../../config/database.php';
 
-  // --- Authorization Check (unchanged) ---
-  if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role_id'], [1, 2, 3])) {
+  // --- **FIX:** Updated Authorization Check ---
+  // Now allows any user who is NOT a student (role_id 4) to access this page.
+  if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] == 4) {
       header('Location: /nmims_quiz_app/login.php');
       exit();
   }
 
-  // Fetch all quizzes
+  // Fetch all quizzes to populate the dropdown
   $quizzes_stmt = $pdo->query("SELECT id, title FROM quizzes ORDER BY created_at DESC");
   $quizzes = $quizzes_stmt->fetchAll();
   
-  // **NEW:** Check for a pre-selected quiz ID
   $preselected_quiz_id = isset($_GET['quiz_id']) ? filter_var($_GET['quiz_id'], FILTER_VALIDATE_INT) : null;
 ?>
 
@@ -38,7 +38,13 @@
 
     <table class="data-table" id="log-table" style="display:none;">
         <thead>
-            <tr><th>Timestamp</th><th>Student Name</th><th>Event Type</th><th>Description</th><th>IP Address</th></tr>
+            <tr>
+                <th>Timestamp</th>
+                <th>Student Name</th>
+                <th>Event Type</th>
+                <th>Description</th>
+                <th>IP Address</th>
+            </tr>
         </thead>
         <tbody id="log-table-body"></tbody>
     </table>
@@ -92,7 +98,6 @@ document.addEventListener('DOMContentLoaded', function() {
         loadLogs(this.value);
     });
 
-    // **NEW:** Automatically load logs if a quiz is pre-selected
     if (quizSelector.value) {
         loadLogs(quizSelector.value);
     }

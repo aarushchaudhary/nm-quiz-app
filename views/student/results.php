@@ -40,7 +40,6 @@
   $answered_count = $correct_count + $incorrect_count;
   $unanswered_count = $total_questions - $answered_count;
 
-  // **NEW:** Calculate Time Taken and Accuracy
   $time_taken_str = 'N/A';
   if ($attempt['started_at'] && $attempt['submitted_at']) {
       $start_time = new DateTime($attempt['started_at']);
@@ -55,68 +54,43 @@
     <h2>Results for: <span style="color: #e60000;"><?php echo htmlspecialchars($attempt['quiz_title']); ?></span></h2>
     
     <div class="summary-grid">
-        <div class="summary-item">
-            <h3>Your Score</h3>
-            <p style="color: #28a745;"><?php echo htmlspecialchars(number_format($attempt['total_score'], 2)); ?></p>
-        </div>
-        <div class="summary-item">
-            <h3>Accuracy</h3>
-            <p style="color: #007bff;"><?php echo $accuracy; ?>%</p>
-        </div>
-        <div class="summary-item">
-            <h3>Time Taken</h3>
-            <p style="color: #333; font-size: 24px;"><?php echo $time_taken_str; ?></p>
-        </div>
-        <div class="summary-item">
-            <h3>Total Questions</h3>
-            <p style="color: #333;"><?php echo $total_questions; ?></p>
-        </div>
+        <div class="summary-item"><h3>Your Score</h3><p style="color: #28a745;"><?php echo htmlspecialchars(number_format($attempt['total_score'], 2)); ?></p></div>
+        <div class="summary-item"><h3>Accuracy</h3><p style="color: #007bff;"><?php echo $accuracy; ?>%</p></div>
+        <div class="summary-item"><h3>Time Taken</h3><p style="color: #333; font-size: 24px;"><?php echo $time_taken_str; ?></p></div>
+        <div class="summary-item"><h3>Total Questions</h3><p style="color: #333;"><?php echo $total_questions; ?></p></div>
     </div>
 
     <div style="width: 100%; max-width: 350px; margin: 20px auto;">
         <canvas id="resultsChart"></canvas>
     </div>
 
-    <a href="detailed_results.php?attempt_id=<?php echo htmlspecialchars($attempt_id); ?>" class="button-red" style="width: auto; padding: 12px 30px; margin-top: 10px; text-decoration: none; background-color: #17a2b8;">View Detailed Breakdown</a>
+    <div class="button-group" style="justify-content: center; margin-top: 20px; gap: 15px;">
+        <a href="detailed_results.php?attempt_id=<?php echo htmlspecialchars($attempt_id); ?>" class="button-red" style="width: auto; background-color: #17a2b8;">View Detailed Breakdown</a>
+        <a href="/nmims_quiz_app/api/student/export_student_results.php?attempt_id=<?php echo htmlspecialchars($attempt_id); ?>" class="button-red" style="width: auto; background-color: #28a745;">Download Excel</a>
+    </div>
     <a href="dashboard.php" class="button-red" style="width: auto; padding: 12px 30px; margin-top: 20px; text-decoration: none;">Back to Dashboard</a>
 </div>
 
 <script src="/nmims_quiz_app/lib/chartjs/chart.umd.js"></script>
 <script>
+// Chart.js initialization script remains the same
 document.addEventListener('DOMContentLoaded', function() {
     const ctx = document.getElementById('resultsChart').getContext('2d');
-    
     new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: ['Correct', 'Incorrect', 'Unanswered'],
             datasets: [{
                 label: 'Performance',
-                data: [
-                    <?php echo json_encode($correct_count); ?>,
-                    <?php echo json_encode($incorrect_count); ?>,
-                    <?php echo json_encode($unanswered_count); ?>
-                ],
-                backgroundColor: [
-                    'rgba(40, 167, 69, 0.8)',
-                    'rgba(220, 53, 69, 0.8)',
-                    'rgba(108, 117, 125, 0.8)'
-                ],
+                data: [<?php echo json_encode($correct_count); ?>, <?php echo json_encode($incorrect_count); ?>, <?php echo json_encode($unanswered_count); ?>],
+                backgroundColor: ['rgba(40, 167, 69, 0.8)', 'rgba(220, 53, 69, 0.8)', 'rgba(108, 117, 125, 0.8)'],
                 borderColor: '#fff',
                 borderWidth: 2
             }]
         },
         options: {
             responsive: true,
-            plugins: {
-                legend: {
-                    position: 'top',
-                },
-                title: {
-                    display: true,
-                    text: 'Your Performance Breakdown'
-                }
-            }
+            plugins: { legend: { position: 'top' }, title: { display: true, text: 'Your Performance Breakdown' } }
         }
     });
 });
