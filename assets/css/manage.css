@@ -1014,3 +1014,91 @@
 }
 
 /* ... (rest of the CSS file) ... */
+/* ... (all of your existing styles for tables, modals, etc. remain here) ... */
+
+/* ==========================================================================
+   **NEW:** Pagination Styles
+   ========================================================================== */
+
+.pagination-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.pagination-controls .page-info {
+    font-size: 14px;
+    color: #555;
+}
+
+.pagination-controls .page-links a,
+.pagination-controls .page-links span {
+    padding: 8px 12px;
+    margin: 0 3px;
+    text-decoration: none;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    color: #007bff;
+}
+
+.pagination-controls .page-links a:hover {
+    background-color: #f4f4f4;
+}
+
+.pagination-controls .page-links span.current-page {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+    font-weight: bold;
+}
+
+.pagination-controls .page-links span.disabled {
+    color: #ccc;
+    border-color: #eee;
+}
+
+.items-per-page-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+/* ... (all of your existing styles for tables, modals, etc. remain here) ... */
+
+/* ==========================================================================
+   **NEW:** Filter Form Styles
+   ========================================================================== */
+
+.filter-form {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    border: 1px solid #dee2e6;
+}
+
+.filter-form .form-row {
+    align-items: flex-end; /* Aligns items to the bottom, looks nice with buttons */
+}
+
+.filter-form label {
+    font-size: 14px;
+    font-weight: bold;
+    color: #555;
+}
+
+.filter-form .input-field {
+    height: 40px; /* Standard height for inputs */
+    padding: 8px 12px;
+}
+
+.filter-form .button-group {
+    padding-top: 25px; /* Aligns buttons with inputs */
+}
+
+.filter-form .button-group .button-red {
+    padding: 8px 20px;
+    font-size: 14px;
+}

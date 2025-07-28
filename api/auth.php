@@ -1,7 +1,7 @@
 <?php
 /*
  * auth.php
- * Handles user authentication.
+ * Handles user authentication with corrected name fetching.
  */
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
@@ -16,8 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $username = $_POST['username'];
 $password = $_POST['password'];
 
-// **MODIFIED:** The query now joins with the 'roles' table to get the role name,
-// and includes the 'heads' table in the COALESCE to get the full name for new roles.
+// **FIX:** This query now correctly finds the user's name from all possible tables.
 $sql = "
     SELECT 
         u.id, 
@@ -43,8 +42,8 @@ if ($user && password_verify($password, $user['password_hash'])) {
     session_regenerate_id(true);
     $_SESSION['user_id'] = $user['id'];
     $_SESSION['role_id'] = $user['role_id'];
-    $_SESSION['full_name'] = $user['full_name'];
-    $_SESSION['role_name'] = $user['role_name']; // **NEW:** Store role name in session
+    $_SESSION['full_name'] = $user['full_name']; // **FIX:** Use 'full_name' consistently
+    $_SESSION['role_name'] = $user['role_name'];
     
     header('Location: /nmims_quiz_app/index.php');
     exit();

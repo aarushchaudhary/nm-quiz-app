@@ -9,7 +9,8 @@
       exit();
   }
   
-  $adminName = isset($_SESSION['name']) ? htmlspecialchars($_SESSION['name']) : 'Admin';
+  // **FIX:** Changed 'name' to 'full_name' to match the correct session variable.
+  $adminName = isset($_SESSION['full_name']) ? htmlspecialchars($_SESSION['full_name']) : 'Admin';
 ?>
 
 <div class="manage-container">

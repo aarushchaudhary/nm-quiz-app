@@ -12,7 +12,8 @@
   }
   
   $student_user_id = $_SESSION['user_id'];
-  $studentName = isset($_SESSION['name']) ? htmlspecialchars($_SESSION['name']) : 'Student';
+  // **FIX:** Changed 'name' to 'full_name' to match the session variable from the login script.
+  $studentName = isset($_SESSION['full_name']) ? htmlspecialchars($_SESSION['full_name']) : 'Student';
 
   // --- Fetch the Student's Course ID and Graduation Year ---
   $stmt_student = $pdo->prepare("SELECT course_id, graduation_year FROM students WHERE user_id = ?");
@@ -23,10 +24,8 @@
   $student_grad_year = $student_info ? $student_info['graduation_year'] : null;
   $quizzes = [];
 
-  // --- Fetch Available Quizzes with Corrected Logic ---
+  // --- Fetch Available Quizzes ---
   if ($student_course_id && $student_grad_year) {
-      // **FIX:** The query now checks for both course_id AND graduation_year,
-      // ensuring only students from the target batch can see the quiz.
       $sql = "SELECT 
                 q.id, 
                 q.title, 
