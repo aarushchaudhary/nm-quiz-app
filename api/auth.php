@@ -1,53 +1,62 @@
 <?php
 /*
  * auth.php
- * Handles user authentication with corrected name fetching.
+ * Handles user authentication with single-session enforcement.
  */
+header('Content-Type: application/json');
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 require_once '../config/database.php';
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header('Location: /nmims_quiz_app/login.php');
-    exit();
+$data = json_decode(file_get_contents('php://input'), true);
+$username = $data['username'] ?? '';
+$password = $data['password'] ?? '';
+$force_login = $data['force'] ?? false;
+
+// Fetch user data
+$sql_user = "SELECT id, password_hash, active_session_id, role_id FROM users WHERE username = :username AND is_active = 1";
+$stmt_user = $pdo->prepare($sql_user);
+$stmt_user->execute(['username' => $username]);
+$user = $stmt_user->fetch();
+
+if (!$user || !password_verify($password, $user['password_hash'])) {
+    http_response_code(401);
+    exit(json_encode(['status' => 'error', 'message' => 'Invalid credentials.']));
 }
 
-$username = $_POST['username'];
-$password = $_POST['password'];
-
-// **FIX:** This query now correctly finds the user's name from all possible tables.
-$sql = "
-    SELECT 
-        u.id, 
-        u.password_hash, 
-        u.role_id,
-        r.name as role_name,
-        COALESCE(s.name, f.name, p.name, a.name, h.name) as full_name
-    FROM users u
-    JOIN roles r ON u.role_id = r.id
-    LEFT JOIN students s ON u.id = s.user_id AND u.role_id = 4
-    LEFT JOIN faculties f ON u.id = f.user_id AND u.role_id = 2
-    LEFT JOIN placement_officers p ON u.id = p.user_id AND u.role_id = 3
-    LEFT JOIN admins a ON u.id = a.user_id AND u.role_id = 1
-    LEFT JOIN heads h ON u.id = h.user_id
-    WHERE u.username = :username
-";
-
-$stmt = $pdo->prepare($sql);
-$stmt->execute(['username' => $username]);
-$user = $stmt->fetch();
-
-if ($user && password_verify($password, $user['password_hash'])) {
-    session_regenerate_id(true);
-    $_SESSION['user_id'] = $user['id'];
-    $_SESSION['role_id'] = $user['role_id'];
-    $_SESSION['full_name'] = $user['full_name']; // **FIX:** Use 'full_name' consistently
-    $_SESSION['role_name'] = $user['role_name'];
-    
-    header('Location: /nmims_quiz_app/index.php');
-    exit();
-} else {
-    header('Location: /nmims_quiz_app/login.php?error=invalid_credentials');
-    exit();
+// Check for an existing active session
+if (!empty($user['active_session_id']) && !$force_login) {
+    // User is logged in elsewhere and this is the first login attempt
+    exit(json_encode(['status' => 'conflict', 'message' => 'This account is already logged in elsewhere. Continuing will log out the other session.']));
 }
+
+// --- Proceed with Login ---
+session_regenerate_id(true); // Create a new session ID
+$new_session_id = session_id();
+
+// Update the user's record with the new session ID
+$sql_update = "UPDATE users SET active_session_id = ? WHERE id = ?";
+$stmt_update = $pdo->prepare($sql_update);
+$stmt_update->execute([$new_session_id, $user['id']]);
+
+// Fetch full user details and set session variables
+$sql_details = "SELECT r.name as role_name, COALESCE(s.name, f.name, p.name, a.name, h.name) as full_name
+                FROM users u
+                JOIN roles r ON u.role_id = r.id
+                LEFT JOIN students s ON u.id = s.user_id
+                LEFT JOIN faculties f ON u.id = f.user_id
+                LEFT JOIN placement_officers p ON u.id = p.user_id
+                LEFT JOIN admins a ON u.id = a.user_id
+                LEFT JOIN heads h ON u.id = h.user_id
+                WHERE u.id = ?";
+$stmt_details = $pdo->prepare($sql_details);
+$stmt_details->execute([$user['id']]);
+$details = $stmt_details->fetch();
+
+$_SESSION['user_id'] = $user['id'];
+$_SESSION['role_id'] = $user['role_id'];
+$_SESSION['full_name'] = $details['full_name'];
+$_SESSION['role_name'] = $details['role_name'];
+
+echo json_encode(['status' => 'success', 'message' => 'Login successful.']);

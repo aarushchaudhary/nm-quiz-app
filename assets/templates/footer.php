@@ -2,7 +2,7 @@
 
     <!-- The main footer, consistent across all pages -->
     <footer class="footer">
-        &copy; <?php echo date('Y'); ?> Aarush Chaudhary, STME NMIMS Hyderabad.
+        &copy; <?php echo date('Y'); ?> Aarush Chaudhary, STME NMIMS Hyderabad, All rights reserved.
     </footer>
 
     <!-- You can include global JavaScript files here if needed in the future -->

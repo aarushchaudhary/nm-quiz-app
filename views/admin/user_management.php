@@ -13,7 +13,38 @@
   // --- Fetch data for the role filter dropdown ---
   $roles = $pdo->query("SELECT id, name FROM roles ORDER BY name ASC")->fetchAll();
 
-  // --- Build the dynamic SQL query based on filters ---
+  // --- Get Filter Values ---
+  $search_query_val = $_GET['search_query'] ?? '';
+  $role_filter_val = $_GET['role_filter'] ?? '';
+
+  // --- Build the dynamic WHERE clause for the SQL query ---
+  $where_clauses = [];
+  $params = [];
+
+  if (!empty($search_query_val)) {
+      $search_term = '%' . $search_query_val . '%';
+      $where_clauses[] = "(COALESCE(s.name, f.name, p.name, a.name, h.name) LIKE ? OR u.username LIKE ? OR COALESCE(s.sap_id, f.sap_id, p.sap_id) LIKE ?)";
+      array_push($params, $search_term, $search_term, $search_term);
+  }
+  if (!empty($role_filter_val)) {
+      $where_clauses[] = "u.role_id = ?";
+      $params[] = $role_filter_val;
+  }
+  $where_sql = !empty($where_clauses) ? "WHERE " . implode(' AND ', $where_clauses) : '';
+
+  // --- Pagination Logic ---
+  $items_per_page = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
+  $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+  $offset = ($current_page - 1) * $items_per_page;
+
+  // Get the total number of users matching the filters
+  $total_sql = "SELECT COUNT(DISTINCT u.id) FROM users u LEFT JOIN students s ON u.id = s.user_id AND u.role_id = 4 LEFT JOIN faculties f ON u.id = f.user_id AND u.role_id = 2 LEFT JOIN placement_officers p ON u.id = p.user_id AND u.role_id = 3 LEFT JOIN admins a ON u.id = a.user_id AND u.role_id = 1 LEFT JOIN heads h ON u.id = h.user_id $where_sql";
+  $stmt_total = $pdo->prepare($total_sql);
+  $stmt_total->execute($params);
+  $total_users = $stmt_total->fetchColumn();
+  $total_pages = ceil($total_users / $items_per_page);
+
+  // --- Fetch Users for the current page ---
   $sql = "SELECT
             u.id, u.username, r.name as role_name,
             COALESCE(s.name, f.name, p.name, a.name, h.name) as full_name,
@@ -24,33 +55,17 @@
           LEFT JOIN faculties f ON u.id = f.user_id AND u.role_id = 2
           LEFT JOIN placement_officers p ON u.id = p.user_id AND u.role_id = 3
           LEFT JOIN admins a ON u.id = a.user_id AND u.role_id = 1
-          LEFT JOIN heads h ON u.id = h.user_id";
-
-  $where_clauses = [];
-  $params = [];
-
-  $search_query_val = $_GET['search_query'] ?? '';
-  $role_filter_val = $_GET['role_filter'] ?? '';
-
-  if (!empty($search_query_val)) {
-      $search_term = '%' . $search_query_val . '%';
-      $where_clauses[] = "(COALESCE(s.name, f.name, p.name, a.name, h.name) LIKE ? OR u.username LIKE ? OR COALESCE(s.sap_id, f.sap_id, p.sap_id) LIKE ?)";
-      array_push($params, $search_term, $search_term, $search_term);
-  }
-
-  if (!empty($role_filter_val)) {
-      $where_clauses[] = "u.role_id = ?";
-      $params[] = $role_filter_val;
-  }
-
-  if (!empty($where_clauses)) {
-      $sql .= " WHERE " . implode(' AND ', $where_clauses);
-  }
-
-  $sql .= " ORDER BY u.id DESC";
+          LEFT JOIN heads h ON u.id = h.user_id
+          $where_sql
+          GROUP BY u.id, u.username, r.name, full_name, sap_id
+          ORDER BY u.id DESC
+          LIMIT ? OFFSET ?";
   
   $stmt = $pdo->prepare($sql);
-  $stmt->execute($params);
+  
+  $all_params = array_merge($params, [$items_per_page, $offset]);
+  
+  $stmt->execute($all_params);
   $users = $stmt->fetchAll();
 ?>
 
@@ -78,28 +93,18 @@
 
 <div class="manage-container">
     <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h2>All Users (<?php echo count($users); ?>)</h2>
-        <a href="add_user.php" class="button-red" style="width: auto; padding: 10px 20px;">+ Add New User</a>
+        <h2>All Users (<?php echo $total_users; ?>)</h2>
+        <div class="button-group">
+            <a href="add_user.php" class="button-red" style="width: auto; padding: 10px 20px;">+ Add New User</a>
+            <a href="upload_students.php" class="button-red" style="width: auto; padding: 10px 20px; background-color: #28a745;">Upload Students (Excel)</a>
+        </div>
     </div>
 
     <div class="section-box" style="margin-top: 15px;">
         <form method="GET" action="user_management.php" class="form-container" style="padding:0; box-shadow:none;">
             <div class="form-row">
-                <div class="form-group" style="flex: 2;">
-                    <label for="search_query">Search by Name / Username / SAP ID</label>
-                    <input type="text" id="search_query" name="search_query" class="input-field" placeholder="Enter search term..." value="<?php echo htmlspecialchars($search_query_val); ?>">
-                </div>
-                <div class="form-group" style="flex: 1;">
-                    <label for="role_filter">Filter by Role</label>
-                    <select id="role_filter" name="role_filter" class="input-field">
-                        <option value="">All Roles</option>
-                        <?php foreach ($roles as $role): ?>
-                            <option value="<?php echo $role['id']; ?>" <?php if($role['id'] == $role_filter_val) echo 'selected'; ?>>
-                                <?php echo htmlspecialchars(ucfirst($role['name'])); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
+                <div class="form-group" style="flex: 2;"><label for="search_query">Search by Name / Username / SAP ID</label><input type="text" id="search_query" name="search_query" class="input-field" placeholder="Enter search term..." value="<?php echo htmlspecialchars($search_query_val); ?>"></div>
+                <div class="form-group" style="flex: 1;"><label for="role_filter">Filter by Role</label><select id="role_filter" name="role_filter" class="input-field"><option value="">All Roles</option><?php foreach ($roles as $role): ?><option value="<?php echo $role['id']; ?>" <?php if($role['id'] == $role_filter_val) echo 'selected'; ?>><?php echo htmlspecialchars(ucfirst($role['name'])); ?></option><?php endforeach; ?></select></div>
             </div>
             <div class="button-group" style="justify-content: flex-start;">
                 <button type="submit" class="button-red" style="width:auto;">Filter</button>
@@ -118,21 +123,49 @@
             <tr><th>Full Name</th><th>Username</th><th>SAP ID</th><th>Role</th><th>Actions</th></tr>
         </thead>
         <tbody id="user-table-body">
-            <?php foreach ($users as $user): ?>
-                <tr id="user-row-<?php echo $user['id']; ?>">
-                    <td><?php echo htmlspecialchars($user['full_name'] ?? 'N/A'); ?></td>
-                    <td><?php echo htmlspecialchars($user['username']); ?></td>
-                    <td><?php echo htmlspecialchars($user['sap_id'] ?? 'N/A'); ?></td>
-                    <td><?php echo htmlspecialchars(ucfirst($user['role_name'])); ?></td>
-                    <td class="action-buttons" style="flex-direction:row; gap:5px;">
-                        <a href="edit_user.php?id=<?php echo $user['id']; ?>" class="btn-edit">Edit</a>
-                        <button class="btn-reset-password" data-user-id="<?php echo $user['id']; ?>" data-username="<?php echo htmlspecialchars($user['username']); ?>" style="background-color:#007bff;">Reset Pass</button>
-                        <button class="btn-delete" data-user-id="<?php echo $user['id']; ?>" style="background-color:#dc3545;">Delete</button>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
+            <?php if (empty($users)): ?>
+                <tr><td colspan="5" style="text-align:center;">No users found matching your criteria.</td></tr>
+            <?php else: ?>
+                <?php foreach ($users as $user): ?>
+                    <tr id="user-row-<?php echo $user['id']; ?>">
+                        <td><?php echo htmlspecialchars($user['full_name'] ?? 'N/A'); ?></td>
+                        <td><?php echo htmlspecialchars($user['username']); ?></td>
+                        <td><?php echo htmlspecialchars($user['sap_id'] ?? 'N/A'); ?></td>
+                        <td><?php echo htmlspecialchars(ucfirst($user['role_name'])); ?></td>
+                        <td class="action-buttons" style="flex-direction:row; gap:5px;">
+                            <a href="edit_user.php?id=<?php echo $user['id']; ?>" class="btn-edit">Edit</a>
+                            <button class="btn-reset-password" data-user-id="<?php echo $user['id']; ?>" data-username="<?php echo htmlspecialchars($user['username']); ?>" style="background-color:#007bff;">Reset Pass</button>
+                            <button class="btn-delete" data-user-id="<?php echo $user['id']; ?>" style="background-color:#dc3545;">Delete</button>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            <?php endif; ?>
         </tbody>
     </table>
+
+    <div class="pagination-controls">
+        <span class="page-info">
+            Showing <?php echo count($users); ?> of <?php echo $total_users; ?> users
+        </span>
+        <form method="GET" action="user_management.php" class="items-per-page-form">
+            <input type="hidden" name="search_query" value="<?php echo htmlspecialchars($search_query_val); ?>">
+            <input type="hidden" name="role_filter" value="<?php echo htmlspecialchars($role_filter_val); ?>">
+            <label for="limit">Items per page:</label>
+            <select name="limit" id="limit" onchange="this.form.submit()" class="input-field" style="width:auto; padding: 5px;">
+                <option value="10" <?php if ($items_per_page == 10) echo 'selected'; ?>>10</option>
+                <option value="25" <?php if ($items_per_page == 25) echo 'selected'; ?>>25</option>
+                <option value="50" <?php if ($items_per_page == 50) echo 'selected'; ?>>50</option>
+            </select>
+        </form>
+        <div class="page-links">
+            <?php
+            $query_params = http_build_query(['limit' => $items_per_page, 'search_query' => $search_query_val, 'role_filter' => $role_filter_val]);
+            for ($i = 1; $i <= $total_pages; $i++):
+            ?>
+                <a href="?page=<?php echo $i; ?>&<?php echo $query_params; ?>" class="<?php if ($i == $current_page) echo 'current-page'; ?>"><?php echo $i; ?></a>
+            <?php endfor; ?>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -165,7 +198,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // --- **FIX:** Event Listeners for Modals with full logic ---
+    // --- Event Listeners for Modals ---
     cancelDeleteBtn.addEventListener('click', () => {
         deleteModal.style.display = 'none';
         userIdToDelete = null;

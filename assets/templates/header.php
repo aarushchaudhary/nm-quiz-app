@@ -2,6 +2,26 @@
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
+
+// **NEW:** Single Session Validation
+// This block runs on every page to ensure the current session is the only active one.
+if (isset($_SESSION['user_id'])) {
+    // This check requires a database connection.
+    require_once __DIR__ . '/../../config/database.php';
+
+    $stmt = $pdo->prepare("SELECT active_session_id FROM users WHERE id = ?");
+    $stmt->execute([$_SESSION['user_id']]);
+    $active_session_id = $stmt->fetchColumn();
+
+    // If the session ID in the database does not match the user's current session ID,
+    // it means they have logged in from another location.
+    // We destroy this older session, forcing them to log out.
+    if ($active_session_id !== session_id()) {
+        session_destroy();
+        header('Location: /nmims_quiz_app/login.php?error=session_terminated');
+        exit();
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">

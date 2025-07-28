@@ -1,44 +1,29 @@
 <?php
-  // Set the page title for the header
-  $pageTitle = 'NMIMS - User Login';
-  
-  // Include the header template
-  include 'assets/templates/header.php';
-
-  // If a user is already logged in, redirect them away from the login page
-  // The index.php file will handle routing them to the correct dashboard
-  if (isset($_SESSION['user_id'])) {
-      header('Location: index.php');
-      exit();
-  }
+  // **FIX:** Added variables to set the page title and link the correct stylesheet.
+  $pageTitle = 'Login';
+  $customCSS = 'login.css'; 
+  require_once 'assets/templates/header.php';
 ?>
-
-<!-- The main login box, styled by components.css -->
-<div class="login-box">
-  <h2>Sign In</h2>
+<div class="form-container">
+  <h2>User Login</h2>
   
-  <?php
-    // Display an error message if the login failed
-    if (isset($_GET['error'])) {
-        $errorMsg = '';
-        if ($_GET['error'] == 'invalid_credentials') {
-            $errorMsg = 'Invalid username or password.';
-        } elseif ($_GET['error'] == 'db_error') {
-            $errorMsg = 'A database error occurred. Please try again later.';
-        }
-        echo '<p style="color: red; margin-bottom: 15px;">' . htmlspecialchars($errorMsg) . '</p>';
-    }
-  ?>
+  <div id="message-box" class="message-box error-message" style="display: none;"></div>
 
-  <!-- The form submits to the authentication script -->
-  <form action="api/auth.php" method="POST">
-    <input class="input-field" type="text" name="username" placeholder="Username / SAP ID" required />
-    <input class="input-field" type="password" name="password" placeholder="Password" required />
-    <button class="button-red" type="submit">Login</button>
+  <form id="login-form">
+    <div class="form-group">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username" required>
+    </div>
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" required>
+    </div>
+    <button type="submit" class="button-red">Login</button>
   </form>
 </div>
 
+<script src="/nmims_quiz_app/assets/js/login.js" defer></script>
+
 <?php
-  // Include the footer template to close the page
-  include 'assets/templates/footer.php';
+  require_once 'assets/templates/footer.php';
 ?>
