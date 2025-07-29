@@ -37,14 +37,13 @@
     <a href="manage_quizzes.php" style="text-decoration: none; color: #007bff; margin-bottom: 20px; display: inline-block;">&larr; Back to My Quizzes</a>
     <h2 style="text-align: center;"><?php echo htmlspecialchars($quiz['title']); ?></h2>
     
-    <div id="message-area"> <!-- Container for dynamic messages -->
+    <div id="message-area">
     <?php
     if (isset($_GET['success'])) { echo '<div class="message-box success-message">' . htmlspecialchars($_GET['success']) . '</div>'; }
     if (isset($_GET['error'])) { echo '<div class="message-box error-message">' . htmlspecialchars($_GET['error']) . '</div>'; }
     ?>
     </div>
 
-    <!-- Exam Control Panel -->
     <div class="section-box control-panel">
         <h3>Live Exam Control</h3>
         <p>Current Status: <strong style="font-size: 18px;" id="current-status-text"><?php echo htmlspecialchars($quiz['status_name']); ?></strong></p>
@@ -61,7 +60,6 @@
         </div>
     </div>
 
-    <!-- Real-Time Monitoring Section -->
     <div class="section-box">
         <h3>Real-Time Monitoring (<span id="student-count">0</span>)</h3>
         <table class="data-table">
@@ -94,21 +92,26 @@ document.addEventListener('DOMContentLoaded', function() {
     async function fetchMonitoringData() {
         try {
             const response = await fetch(`/nmims_quiz_app/api/faculty/get_live_monitoring_data.php?id=${quizId}`);
-            if (!response.ok) throw new Error('Failed to fetch data');
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to fetch data');
+            }
             
-            const students = await response.json();
+            const students = data.students;
+            const quizStatus = data.quiz_status;
             
             studentCountSpan.textContent = students.length;
             studentListBody.innerHTML = '';
 
             if (students.length === 0) {
-                studentListBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No students are assigned to this quiz\'s course.</td></tr>';
+                studentListBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No students are assigned to this quiz\'s course and batch.</td></tr>';
             } else {
                 students.forEach(student => {
                     const statusClass = student.status.toLowerCase().replace(' ', '_');
                     let actionHtml = 'N/A';
                     
-                    if (student.status === 'Disqualified') {
+                    if (student.status === 'Disqualified' && quizStatus === 'In Progress') {
                         actionHtml = `<button class="button-red btn-reenable" style="width:auto; padding: 5px 10px; font-size: 12px;" data-attempt-id="${student.attempt_id}">Re-enable</button>`;
                     }
 
@@ -126,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch (error) {
             console.error('Error fetching monitoring data:', error);
-            studentListBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Error loading student list.</td></tr>';
+            studentListBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Error: ${error.message}</td></tr>`;
         }
     }
 
@@ -181,6 +184,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ quiz_id: quizId, new_status_id: newStatusId })
                 });
+                
                 const result = await response.json();
 
                 if (result.success) {

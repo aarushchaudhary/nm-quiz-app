@@ -9,7 +9,7 @@
 <div class="lobby-container">
     <h2 style="color: #dc3545;">Exam Session Locked</h2>
     <p class="lobby-instructions">
-        Your exam has been locked due to leaving the exam window multiple times.
+        Your exam has been locked due to proctoring violations.
         Please wait for the faculty in charge to review your case. If approved, you will be able to resume your exam.
     </p>
 
@@ -22,20 +22,18 @@
 document.addEventListener('DOMContentLoaded', function() {
     const attemptId = <?php echo json_encode($attempt_id); ?>;
     if (!attemptId) {
-        document.getElementById('status-text').textContent = 'Error: No attempt ID found.';
+        document.getElementById('status-text').textContent = 'Error: No valid attempt ID found. Please contact your faculty.';
         return;
     }
 
     async function checkResumeStatus() {
         try {
-            // This is a new API endpoint we will create next
             const response = await fetch(`/nmims_quiz_app/api/student/get_attempt_status.php?id=${attemptId}`);
             const data = await response.json();
 
             if (data.can_resume) {
                 // If faculty re-enables, redirect back to the exam
                 alert('The faculty has re-enabled your exam. You can now continue.');
-                // We need to pass the quiz_id back to the exam page
                 window.location.href = `exam.php?id=${data.quiz_id}`;
             }
         } catch (error) {

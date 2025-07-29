@@ -6,7 +6,6 @@
   $quiz_id = isset($_GET['id']) ? filter_var($_GET['id'], FILTER_VALIDATE_INT) : null;
 ?>
 
-<!-- Proctoring Warning Modal -->
 <div id="warning-overlay">
     <div class="warning-box">
         <h2>Warning!</h2>
@@ -15,7 +14,6 @@
     </div>
 </div>
 
-<!-- Main Exam UI -->
 <div id="exam-container" class="exam-container" style="display:none;" data-quiz-id="<?php echo htmlspecialchars($quiz_id); ?>">
     <div class="exam-header">
         <div class="question-counter" id="question-counter">Question 1 of N</div>
@@ -30,13 +28,10 @@
     </div>
 </div>
 
-<!-- Loading Overlay -->
 <div id="loading-overlay">
     <div class="spinner"></div>
     <p style="text-align:center; font-weight:bold;">Preparing your exam...</p>
-    <!-- **FIX:** Added a dedicated element for the click message -->
-    <p id="click-prompt" style="margin-top: 15px;"></p>
+    <p id="click-prompt" style="margin-top: 15px; font-size: 18px;"></p>
 </div>
 
-<!-- Include the external JavaScript file -->
 <script src="/nmims_quiz_app/assets/js/exam_logic.js" defer></script>

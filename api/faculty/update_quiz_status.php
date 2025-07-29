@@ -1,10 +1,9 @@
 <?php
 /*
  * api/faculty/update_quiz_status.php
- * Handles updating the status of a quiz (e.g., opening lobby, starting exam).
- * -- MODIFIED FOR AJAX with robust error handling --
+ * Handles updating the status of a quiz for AJAX requests.
  */
-header('Content-Type: application/json'); // Set this first to guarantee JSON output
+header('Content-Type: application/json'); // This is crucial
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }

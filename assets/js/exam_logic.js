@@ -31,14 +31,25 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
             examState.questions = data.questions;
             examState.attemptId = data.attempt_id;
+
+            // **CRITICAL FIX:** Activate proctoring listeners only AFTER a valid attemptId is received.
+            document.addEventListener('visibilitychange', handleVisibilityChange);
+            document.addEventListener('fullscreenchange', handleFullscreenChange);
+            
             if (examState.questions.length === 0) {
                 throw new Error('This quiz has no questions. Please contact your faculty.');
             }
-            startTimer(data.duration_minutes);
+            
+            startTimer(data.remaining_seconds);
             renderQuestion();
+            setInterval(checkQuizStatus, 10000);
             ui.loadingOverlay.style.display = 'none';
             ui.examContainer.style.display = 'flex';
+
         } catch (error) {
+            // If starting the exam fails, remove listeners to prevent errors
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
             alert(`Error starting exam: ${error.message}`);
             window.location.href = 'dashboard.php';
         }
@@ -66,6 +77,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     async function saveCurrentAnswer() {
+        if (proctoringState.examFinished) return;
         const q = examState.questions[examState.currentQuestionIndex];
         const timeSpent = Math.round((Date.now() - examState.questionStartTime) / 1000);
         let payload = {
@@ -109,12 +121,13 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
 
-    function startTimer(duration) {
-        let timeLeft = duration * 60;
+    function startTimer(totalSeconds) {
+        let timeLeft = parseInt(totalSeconds, 10) || 0;
         const timerInterval = setInterval(() => {
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
                 if (!proctoringState.examFinished) {
+                    ui.timer.textContent = 'Time Up!';
                     alert('Time is up! Submitting your exam automatically.');
                     finishExam();
                 }
@@ -127,12 +140,28 @@ document.addEventListener('DOMContentLoaded', async function() {
             ui.timer.textContent = `Time Left: ${minutes}:${seconds}`;
         }, 1000);
     }
-
-    // --- Proctoring Functions ---
+    
+    async function checkQuizStatus() {
+        if (proctoringState.examFinished) return;
+        try {
+            const response = await fetch(`/nmims_quiz_app/api/shared/get_quiz_status.php?id=${quizId}`);
+            const data = await response.json();
+            if (data.status && data.status !== 'In Progress') {
+                alert('The faculty has ended the exam. Your answers will now be submitted.');
+                finishExam();
+            }
+        } catch (error) {
+            console.error('Could not check quiz status:', error);
+        }
+    }
+    
     function enterFullscreen() { document.documentElement.requestFullscreen().catch(err => console.error(err)); }
     
     async function logViolation(description) {
-        if (!examState.attemptId) return;
+        if (!examState.attemptId) {
+            console.error("Attempt ID not available. Cannot log violation.");
+            return;
+        }
         await fetch('/nmims_quiz_app/api/student/log_event.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -170,7 +199,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
 
-    // --- Event Listeners ---
     ui.nextBtn.addEventListener('click', async () => {
         if (examState.currentQuestionIndex < examState.questions.length - 1) {
             await saveCurrentAnswer();
@@ -206,15 +234,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     });
 
-    // --- Initializer ---
     async function initializeExam() {
         document.body.classList.add('exam-mode');
-        ui.clickPrompt.textContent = 'Click anywhere to begin the exam.';
+        if (ui.clickPrompt) {
+            ui.clickPrompt.textContent = 'Click anywhere to begin the exam.';
+        }
         
         document.body.addEventListener('click', async () => {
             enterFullscreen();
-            document.addEventListener('visibilitychange', handleVisibilityChange);
-            document.addEventListener('fullscreenchange', handleFullscreenChange);
             await startExam();
         }, { once: true });
     }

@@ -20,22 +20,18 @@ if (!isset($_GET['id']) || !filter_var($_GET['id'], FILTER_VALIDATE_INT)) {
 $quiz_id = $_GET['id'];
 
 try {
-    // 1. Get total number of questions for this quiz
-    $stmt_quiz = $pdo->prepare("SELECT config_easy_count, config_medium_count, config_hard_count FROM quizzes WHERE id = ?");
+    // 1. Get quiz config and the current status name
+    $stmt_quiz = $pdo->prepare("SELECT q.config_easy_count, q.config_medium_count, q.config_hard_count, es.name as status_name 
+                               FROM quizzes q JOIN exam_statuses es ON q.status_id = es.id WHERE q.id = ?");
     $stmt_quiz->execute([$quiz_id]);
-    $quiz_config = $stmt_quiz->fetch();
-    $total_questions = ($quiz_config['config_easy_count'] ?? 0) + ($quiz_config['config_medium_count'] ?? 0) + ($quiz_config['config_hard_count'] ?? 0);
+    $quiz_info = $stmt_quiz->fetch();
+    $total_questions = ($quiz_info['config_easy_count'] ?? 0) + ($quiz_info['config_medium_count'] ?? 0) + ($quiz_info['config_hard_count'] ?? 0);
+    $quiz_status = $quiz_info['status_name'] ?? 'Unknown';
 
-    // 2. Fetch all students associated with the quiz's course AND graduation year
-    // **FIX:** The JOIN condition now correctly includes `s.graduation_year = q.graduation_year`
-    // to ensure only students from the target batch are shown.
+    // 2. Fetch all students associated with the quiz
     $sql = "SELECT 
-                s.user_id, 
-                s.name, 
-                s.sap_id, 
-                sa.id as attempt_id, 
-                sa.submitted_at, 
-                sa.is_disqualified
+                s.user_id, s.name, s.sap_id, 
+                sa.id as attempt_id, sa.submitted_at, sa.is_disqualified, sa.is_manually_locked
             FROM students s
             JOIN quizzes q ON s.course_id = q.course_id AND s.graduation_year = q.graduation_year
             LEFT JOIN student_attempts sa ON s.user_id = sa.student_id AND sa.quiz_id = q.id
@@ -44,11 +40,13 @@ try {
     $stmt->execute([$quiz_id]);
     $students = $stmt->fetchAll();
 
-    // 3. Get counts of answered questions for all attempts in this quiz
+    // 3. Get counts of answered questions for all attempts
     $progress_data = [];
     if (!empty($students)) {
         $attempt_ids = array_filter(array_column($students, 'attempt_id'));
         if (!empty($attempt_ids)) {
+            // **FIX:** Use array_values to re-index the array, preventing parameter number mismatch.
+            $attempt_ids = array_values($attempt_ids);
             $placeholders = implode(',', array_fill(0, count($attempt_ids), '?'));
             $sql_progress = "SELECT attempt_id, COUNT(id) as answered_count FROM student_answers WHERE attempt_id IN ($placeholders) GROUP BY attempt_id";
             $stmt_progress = $pdo->prepare($sql_progress);
@@ -68,11 +66,10 @@ try {
         $status = 'Not Started';
         $progress = 'N/A';
 
-        if ($student['is_disqualified']) {
-            $status = 'Disqualified';
-        } elseif ($student['submitted_at']) {
-            $status = 'Finished';
-        } elseif ($student['attempt_id']) {
+        if ($student['is_disqualified']) { $status = 'Disqualified'; }
+        elseif ($student['is_manually_locked']) { $status = 'Locked'; }
+        elseif ($student['submitted_at']) { $status = 'Finished'; }
+        elseif ($student['attempt_id']) {
             $status = 'In Progress';
             $answered_count = $progress_data[$student['attempt_id']] ?? 0;
             $progress = "{$answered_count} / {$total_questions}";
@@ -85,14 +82,19 @@ try {
             'sap_id' => $student['sap_id'],
             'status' => $status,
             'progress' => $progress,
-            'attempt_id' => $student['attempt_id']
+            'attempt_id' => $student['attempt_id'],
+            'is_disqualified' => $student['is_disqualified'],
+            'is_manually_locked' => $student['is_manually_locked']
         ];
     }
 
-    echo json_encode($monitoring_data);
+    echo json_encode([
+        'quiz_status' => $quiz_status,
+        'students' => $monitoring_data
+    ]);
 
 } catch (PDOException $e) {
     http_response_code(500);
     error_log("Live monitoring failed: " . $e->getMessage());
-    echo json_encode(['error' => 'Database error.']);
+    echo json_encode(['error' => 'Database error. Check server logs for details.']);
 }
