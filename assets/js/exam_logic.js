@@ -32,9 +32,10 @@ document.addEventListener('DOMContentLoaded', async function() {
             examState.questions = data.questions;
             examState.attemptId = data.attempt_id;
 
-            // **CRITICAL FIX:** Activate proctoring listeners only AFTER a valid attemptId is received.
             document.addEventListener('visibilitychange', handleVisibilityChange);
             document.addEventListener('fullscreenchange', handleFullscreenChange);
+            document.addEventListener('contextmenu', event => event.preventDefault());
+            document.addEventListener('keydown', handleKeyDown);
             
             if (examState.questions.length === 0) {
                 throw new Error('This quiz has no questions. Please contact your faculty.');
@@ -47,9 +48,10 @@ document.addEventListener('DOMContentLoaded', async function() {
             ui.examContainer.style.display = 'flex';
 
         } catch (error) {
-            // If starting the exam fails, remove listeners to prevent errors
             document.removeEventListener('visibilitychange', handleVisibilityChange);
             document.removeEventListener('fullscreenchange', handleFullscreenChange);
+            document.removeEventListener('contextmenu', event => event.preventDefault());
+            document.removeEventListener('keydown', handleKeyDown);
             alert(`Error starting exam: ${error.message}`);
             window.location.href = 'dashboard.php';
         }
@@ -199,6 +201,26 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
 
+    function handleKeyDown(event) {
+        if (proctoringState.examFinished) return;
+        if (event.metaKey || event.altKey) {
+            event.preventDefault();
+            triggerViolation(`Attempted to use a system command (Windows/Alt key). Warning #${proctoringState.warningCount + 1}.`);
+        }
+        const key = event.key.toUpperCase();
+        const ctrl = event.ctrlKey;
+        const shift = event.shiftKey;
+        if (key === 'F12' || (ctrl && shift && key === 'I') || (ctrl && shift && key === 'J') || (ctrl && key === 'U')) {
+            event.preventDefault();
+            triggerViolation(`Attempted to use developer tools shortcut (${event.key}). Warning #${proctoringState.warningCount + 1}.`);
+        }
+        // **NEW:** Add a check for Ctrl+Shift+R
+        if (ctrl && shift && key === 'R') {
+            event.preventDefault(); // This will attempt to block the hard refresh
+            triggerViolation(`Attempted to hard refresh the page (Ctrl+Shift+R). Warning #${proctoringState.warningCount + 1}.`);
+        }
+    }
+
     ui.nextBtn.addEventListener('click', async () => {
         if (examState.currentQuestionIndex < examState.questions.length - 1) {
             await saveCurrentAnswer();
@@ -217,23 +239,6 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     });
     
-    document.addEventListener('contextmenu', event => event.preventDefault());
-    
-    document.addEventListener('keydown', event => {
-        if (proctoringState.examFinished) return;
-        if (event.metaKey || event.altKey) {
-            event.preventDefault();
-            triggerViolation(`Attempted to use a system command (Windows/Alt key). Warning #${proctoringState.warningCount + 1}.`);
-        }
-        const key = event.key.toUpperCase();
-        const ctrl = event.ctrlKey;
-        const shift = event.shiftKey;
-        if (key === 'F12' || (ctrl && shift && key === 'I') || (ctrl && shift && key === 'J') || (ctrl && key === 'U')) {
-            event.preventDefault();
-            triggerViolation(`Attempted to use developer tools shortcut (${event.key}). Warning #${proctoringState.warningCount + 1}.`);
-        }
-    });
-
     async function initializeExam() {
         document.body.classList.add('exam-mode');
         if (ui.clickPrompt) {
