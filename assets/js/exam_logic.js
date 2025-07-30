@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             examState.questions = data.questions;
             examState.attemptId = data.attempt_id;
 
+            // Activate proctoring only AFTER a valid attemptId is received.
             document.addEventListener('visibilitychange', handleVisibilityChange);
             document.addEventListener('fullscreenchange', handleFullscreenChange);
             document.addEventListener('contextmenu', event => event.preventDefault());
@@ -48,10 +49,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             ui.examContainer.style.display = 'flex';
 
         } catch (error) {
-            document.removeEventListener('visibilitychange', handleVisibilityChange);
-            document.removeEventListener('fullscreenchange', handleFullscreenChange);
-            document.removeEventListener('contextmenu', event => event.preventDefault());
-            document.removeEventListener('keydown', handleKeyDown);
             alert(`Error starting exam: ${error.message}`);
             window.location.href = 'dashboard.php';
         }
@@ -201,23 +198,37 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
 
+    // **MODIFIED:** The keydown handler now checks for more shortcuts.
     function handleKeyDown(event) {
         if (proctoringState.examFinished) return;
-        if (event.metaKey || event.altKey) {
-            event.preventDefault();
-            triggerViolation(`Attempted to use a system command (Windows/Alt key). Warning #${proctoringState.warningCount + 1}.`);
-        }
+        
         const key = event.key.toUpperCase();
         const ctrl = event.ctrlKey;
         const shift = event.shiftKey;
+        const alt = event.altKey;
+
+        // Block system commands like Alt+Tab, Windows key, etc.
+        if (alt || event.metaKey) {
+            event.preventDefault();
+            triggerViolation(`Attempted to use a system command (Alt/Meta key). Warning #${proctoringState.warningCount + 1}.`);
+        }
+        
+        // Block developer tools
         if (key === 'F12' || (ctrl && shift && key === 'I') || (ctrl && shift && key === 'J') || (ctrl && key === 'U')) {
             event.preventDefault();
-            triggerViolation(`Attempted to use developer tools shortcut (${event.key}). Warning #${proctoringState.warningCount + 1}.`);
+            triggerViolation(`Attempted to use developer tools shortcut. Warning #${proctoringState.warningCount + 1}.`);
         }
-        // **NEW:** Add a check for Ctrl+Shift+R
-        if (ctrl && shift && key === 'R') {
-            event.preventDefault(); // This will attempt to block the hard refresh
-            triggerViolation(`Attempted to hard refresh the page (Ctrl+Shift+R). Warning #${proctoringState.warningCount + 1}.`);
+        
+        // Block all forms of refresh
+        if (ctrl && key === 'R') {
+            event.preventDefault();
+            triggerViolation(`Attempted to refresh the page (Ctrl+R). Warning #${proctoringState.warningCount + 1}.`);
+        }
+        
+        // Attempt to detect Ctrl+Alt+Delete (may be intercepted by OS first)
+        if (ctrl && alt && event.key === 'Delete') {
+             event.preventDefault();
+             triggerViolation(`Attempted to use Ctrl+Alt+Delete. Warning #${proctoringState.warningCount + 1}.`);
         }
     }
 
