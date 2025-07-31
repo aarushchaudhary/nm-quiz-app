@@ -1,5 +1,6 @@
 <?php
   $pageTitle = 'Create New Quiz';
+  $customCSS = 'manage.css';
   require_once '../../assets/templates/header.php';
   require_once '../../config/database.php';
 
@@ -61,7 +62,18 @@
       </div>
     </div>
     <hr style="margin: 25px 0;">
-    <h3 style="text-align: center; margin-bottom: 20px;">Question Configuration</h3>
+    <h3 style="text-align: center; margin-bottom: 20px;">Student & Question Configuration</h3>
+    
+    <div class="form-row">
+        <div class="form-group">
+            <label for="sap_id_start">SAP ID Range (Optional)</label>
+            <input type="text" name="sap_id_range_start" id="sap_id_start" class="input-field" placeholder="Starting SAP ID">
+        </div>
+        <div class="form-group">
+            <label for="sap_id_end">&nbsp;</label> <input type="text" name="sap_id_range_end" id="sap_id_end" class="input-field" placeholder="Ending SAP ID">
+        </div>
+    </div>
+
     <div class="form-row">
       <div class="form-group"><label for="easy_count">Easy Questions</label><input type="number" id="easy_count" name="config_easy_count" min="0" value="0" required></div>
       <div class="form-group"><label for="medium_count">Medium Questions</label><input type="number" id="medium_count" name="config_medium_count" min="0" value="0" required></div>

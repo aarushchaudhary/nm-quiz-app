@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user_id']) || $_S
 $quiz_id = filter_input(INPUT_POST, 'quiz_id', FILTER_VALIDATE_INT);
 $title = trim($_POST['title']);
 $course_id = filter_input(INPUT_POST, 'course_id', FILTER_VALIDATE_INT);
-$graduation_year = filter_input(INPUT_POST, 'graduation_year', FILTER_VALIDATE_INT); // NEW
+$graduation_year = filter_input(INPUT_POST, 'graduation_year', FILTER_VALIDATE_INT);
 $start_time = $_POST['start_time'];
 $end_time = $_POST['end_time'];
 $duration_minutes = filter_input(INPUT_POST, 'duration_minutes', FILTER_VALIDATE_INT);
@@ -24,6 +24,11 @@ $config_easy_count = filter_input(INPUT_POST, 'config_easy_count', FILTER_VALIDA
 $config_medium_count = filter_input(INPUT_POST, 'config_medium_count', FILTER_VALIDATE_INT);
 $config_hard_count = filter_input(INPUT_POST, 'config_hard_count', FILTER_VALIDATE_INT);
 $faculty_id = $_SESSION['user_id'];
+
+// **NEW:** Get SAP ID range, use null if the fields are empty
+$sap_start = !empty($_POST['sap_id_range_start']) ? filter_var($_POST['sap_id_range_start'], FILTER_SANITIZE_NUMBER_INT) : null;
+$sap_end = !empty($_POST['sap_id_range_end']) ? filter_var($_POST['sap_id_range_end'], FILTER_SANITIZE_NUMBER_INT) : null;
+
 
 // --- Basic Validation ---
 if (!$quiz_id || empty($title) || !$course_id || !$graduation_year || !$duration_minutes) {
@@ -41,7 +46,9 @@ $sql = "UPDATE quizzes SET
             duration_minutes = :duration_minutes,
             config_easy_count = :config_easy_count,
             config_medium_count = :config_medium_count,
-            config_hard_count = :config_hard_count
+            config_hard_count = :config_hard_count,
+            sap_id_range_start = :sap_start,
+            sap_id_range_end = :sap_end
         WHERE id = :quiz_id AND faculty_id = :faculty_id";
 
 try {
@@ -56,6 +63,8 @@ try {
         ':config_easy_count' => $config_easy_count,
         ':config_medium_count' => $config_medium_count,
         ':config_hard_count' => $config_hard_count,
+        ':sap_start' => $sap_start,
+        ':sap_end' => $sap_end,
         ':quiz_id' => $quiz_id,
         ':faculty_id' => $faculty_id
     ]);

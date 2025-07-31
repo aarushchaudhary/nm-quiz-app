@@ -12,29 +12,31 @@
   }
   
   $student_user_id = $_SESSION['user_id'];
-  // **FIX:** Changed 'name' to 'full_name' to match the session variable from the login script.
   $studentName = isset($_SESSION['full_name']) ? htmlspecialchars($_SESSION['full_name']) : 'Student';
 
-  // --- Fetch the Student's Course ID and Graduation Year ---
-  $stmt_student = $pdo->prepare("SELECT course_id, graduation_year FROM students WHERE user_id = ?");
+  // --- Fetch the Student's details ---
+  $stmt_student = $pdo->prepare("SELECT course_id, graduation_year, sap_id FROM students WHERE user_id = ?");
   $stmt_student->execute([$student_user_id]);
   $student_info = $stmt_student->fetch();
   
-  $student_course_id = $student_info ? $student_info['course_id'] : null;
-  $student_grad_year = $student_info ? $student_info['graduation_year'] : null;
+  $student_course_id = $student_info['course_id'] ?? null;
+  $student_grad_year = $student_info['graduation_year'] ?? null;
+  $student_sap_id = $student_info['sap_id'] ?? null;
   $quizzes = [];
 
-  // --- Fetch Available Quizzes ---
+  // --- Fetch Available Quizzes with SAP ID range check ---
   if ($student_course_id && $student_grad_year) {
       $sql = "SELECT 
-                q.id, 
-                q.title, 
-                q.start_time,
-                es.name as status_name
+                q.id, q.title, q.start_time, es.name as status_name
               FROM quizzes q
               JOIN exam_statuses es ON q.status_id = es.id
+              JOIN students s ON s.user_id = :student_user_id
               WHERE q.course_id = :course_id 
               AND q.graduation_year = :graduation_year
+              AND (:sap_id IS NULL OR (
+                  (q.sap_id_range_start IS NULL OR s.sap_id >= q.sap_id_range_start) AND
+                  (q.sap_id_range_end IS NULL OR s.sap_id <= q.sap_id_range_end)
+              ))
               AND (
                 (NOW() BETWEEN q.start_time AND q.end_time AND es.name != 'Completed')
                 OR
@@ -43,9 +45,12 @@
               ORDER BY q.start_time ASC";
       
       $stmt_quizzes = $pdo->prepare($sql);
+      // **FIX:** Added the missing :student_user_id and :sap_id parameters.
       $stmt_quizzes->execute([
+          ':student_user_id' => $student_user_id,
           ':course_id' => $student_course_id,
-          ':graduation_year' => $student_grad_year
+          ':graduation_year' => $student_grad_year,
+          ':sap_id' => $student_sap_id
       ]);
       $quizzes = $stmt_quizzes->fetchAll();
   }
@@ -67,7 +72,7 @@
         <tbody>
             <?php if (empty($quizzes)): ?>
                 <tr>
-                    <td colspan="4" style="text-align:center; padding: 20px;">There are no active quizzes available for your batch at this moment.</td>
+                    <td colspan="4" style="text-align:center; padding: 20px;">There are no active quizzes available for your course and batch at this moment.</td>
                 </tr>
             <?php else: ?>
                 <?php foreach ($quizzes as $quiz): ?>

@@ -111,6 +111,8 @@ CREATE TABLE `quizzes` (
   `faculty_id`          INT          NOT NULL,
   `course_id`           INT          NOT NULL,
   `graduation_year`     YEAR         DEFAULT NULL,
+  `sap_id_range_start`  BIGINT       NULL DEFAULT NULL,
+  `sap_id_range_end`    BIGINT       NULL DEFAULT NULL,
   `start_time`          DATETIME     NOT NULL,
   `end_time`            DATETIME     NOT NULL,
   `duration_minutes`    INT          NOT NULL,

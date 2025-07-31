@@ -76,7 +76,18 @@
       <div class="form-group"><label>Duration (Minutes)</label><input type="number" name="duration_minutes" value="<?php echo htmlspecialchars($quiz['duration_minutes']); ?>" min="1" required></div>
     </div>
     <hr style="margin: 25px 0;">
-    <h3 style="text-align: center;">Question Configuration</h3>
+    <h3 style="text-align: center;">Student & Question Configuration</h3>
+    
+    <div class="form-row">
+        <div class="form-group">
+            <label for="sap_id_start">SAP ID Range (Optional)</label>
+            <input type="text" name="sap_id_range_start" id="sap_id_start" class="input-field" placeholder="Starting SAP ID" value="<?php echo htmlspecialchars($quiz['sap_id_range_start']); ?>">
+        </div>
+        <div class="form-group">
+            <label for="sap_id_end">&nbsp;</label> <input type="text" name="sap_id_range_end" id="sap_id_end" class="input-field" placeholder="Ending SAP ID" value="<?php echo htmlspecialchars($quiz['sap_id_range_end']); ?>">
+        </div>
+    </div>
+    
     <div class="form-row">
       <div class="form-group"><label>Easy Questions</label><input type="number" name="config_easy_count" value="<?php echo htmlspecialchars($quiz['config_easy_count']); ?>" min="0" required></div>
       <div class="form-group"><label>Medium Questions</label><input type="number" name="config_medium_count" value="<?php echo htmlspecialchars($quiz['config_medium_count']); ?>" min="0" required></div>
