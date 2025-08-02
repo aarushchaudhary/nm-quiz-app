@@ -63,19 +63,12 @@
     <div class="section-box">
         <h3>Real-Time Monitoring (<span id="student-count">0</span>)</h3>
         <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Student Name</th>
-                    <th>SAP ID</th>
-                    <th>Status</th>
-                    <th>Progress</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
+            <thead><tr><th>Student Name</th><th>SAP ID</th><th>Status</th><th>Progress</th><th>Action</th></tr></thead>
             <tbody id="student-list-body">
                 <tr><td colspan="5" style="text-align:center;">Loading student data...</td></tr>
             </tbody>
         </table>
+        <div class="pagination-controls" id="pagination-controls"></div>
     </div>
 </div>
 
@@ -84,31 +77,36 @@ document.addEventListener('DOMContentLoaded', function() {
     const quizId = <?php echo json_encode($quiz_id); ?>;
     const studentListBody = document.getElementById('student-list-body');
     const studentCountSpan = document.getElementById('student-count');
+    const paginationControlsDiv = document.getElementById('pagination-controls');
     const controlButtonsDiv = document.getElementById('control-buttons');
     const currentStatusText = document.getElementById('current-status-text');
     const messageArea = document.getElementById('message-area');
+    let currentPage = 1;
 
-    async function fetchMonitoringData() {
+    async function fetchMonitoringData(page = 1) {
+        currentPage = page;
         try {
-            const response = await fetch(`/nmims_quiz_app/api/faculty/get_live_monitoring_data.php?id=${quizId}`);
+            const response = await fetch(`/nmims_quiz_app/api/faculty/get_live_monitoring_data.php?id=${quizId}&page=${page}`);
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'Failed to fetch data');
             
             const students = data.students;
             const quizStatus = data.quiz_status;
             
-            studentCountSpan.textContent = students.length;
+            studentCountSpan.textContent = data.pagination.total_students;
             studentListBody.innerHTML = '';
 
-            if (students.length === 0) {
-                studentListBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No students are assigned to this quiz\'s course and batch.</td></tr>';
+            if (students.length === 0 && data.pagination.total_students > 0) {
+                 studentListBody.innerHTML = `<tr><td colspan="5" style="text-align:center;">No students on this page. <a href="#" data-page="1">Go to first page</a>.</td></tr>`;
+            } else if (students.length === 0) {
+                studentListBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No students are assigned to this quiz.</td></tr>';
             } else {
                 students.forEach(student => {
                     const statusClass = student.status.toLowerCase().replace(/ /g, '_');
                     let actionHtml = 'N/A';
                     
                     if (student.is_disqualified && quizStatus === 'In Progress') {
-                        actionHtml = `<button class="btn-reenable" data-attempt-id="${student.attempt_id}">Re-enable</button>`;
+                        actionHtml = `<button class="button-red btn-reenable" data-attempt-id="${student.attempt_id}">Re-enable</button>`;
                     }
 
                     const row = `<tr>
@@ -121,11 +119,36 @@ document.addEventListener('DOMContentLoaded', function() {
                     studentListBody.insertAdjacentHTML('beforeend', row);
                 });
             }
+            
+            renderPagination(data.pagination);
+
         } catch (error) {
             console.error('Error fetching monitoring data:', error);
             studentListBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Error: ${error.message}</td></tr>`;
         }
     }
+
+    function renderPagination(pagination) {
+        paginationControlsDiv.innerHTML = '';
+        if (pagination.total_pages <= 1) return;
+
+        let linksHtml = '';
+        for (let i = 1; i <= pagination.total_pages; i++) {
+            linksHtml += `<a href="#" data-page="${i}" class="${i === pagination.current_page ? 'current-page' : ''}">${i}</a>`;
+        }
+
+        paginationControlsDiv.innerHTML = `
+            <span class="page-info">Page ${pagination.current_page} of ${pagination.total_pages}</span>
+            <div class="page-links">${linksHtml}</div>
+        `;
+    }
+
+    paginationControlsDiv.addEventListener('click', function(e) {
+        if (e.target.tagName === 'A' && e.target.dataset.page) {
+            e.preventDefault();
+            fetchMonitoringData(parseInt(e.target.dataset.page));
+        }
+    });
 
     function escapeHTML(str) {
         if (str === null || str === undefined) return '';
@@ -148,10 +171,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 const result = await response.json();
                 if (!result.success) throw new Error(result.error);
-                fetchMonitoringData();
+                fetchMonitoringData(currentPage);
             } catch (error) {
                 alert(`Action failed: ${error.message}`);
-                fetchMonitoringData();
+                fetchMonitoringData(currentPage);
             }
         }
     });
@@ -200,8 +223,8 @@ document.addEventListener('DOMContentLoaded', function() {
         controlButtonsDiv.innerHTML = buttonsHtml;
     }
 
-    setInterval(fetchMonitoringData, 5000);
-    fetchMonitoringData();
+    setInterval(() => fetchMonitoringData(currentPage), 5000);
+    fetchMonitoringData(1); // Initial fetch for the first page
 });
 </script>
 

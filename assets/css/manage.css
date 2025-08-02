@@ -1102,3 +1102,49 @@
     padding: 8px 20px;
     font-size: 14px;
 }
+/* ==========================================================================
+   Pagination Styles
+   ========================================================================== */
+
+.pagination-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.pagination-controls .page-info {
+    font-size: 14px;
+    color: #555;
+}
+
+.pagination-controls .page-links a,
+.pagination-controls .page-links span {
+    padding: 8px 12px;
+    margin: 0 3px;
+    text-decoration: none;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    color: #007bff;
+    font-size: 14px;
+}
+
+.pagination-controls .page-links a:hover {
+    background-color: #f4f4f4;
+}
+
+.pagination-controls .page-links a.current-page {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+    font-weight: bold;
+}
+
+/* **FIX:** Ensure the re-enable button is always red */
+.btn-reenable {
+    background-color: #dc3545 !important;
+    padding: 5px 10px;
+    font-size: 12px;
+}
