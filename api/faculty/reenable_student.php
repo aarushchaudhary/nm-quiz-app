@@ -10,7 +10,7 @@ require_once '../../config/database.php';
 // --- Authorization & Request Method Check ---
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user_id']) || $_SESSION['role_id'] != 2) {
     http_response_code(403);
-    exit(json_encode(['error' => 'Unauthorized access.']));
+    exit(json_encode(['success' => false, 'error' => 'Unauthorized access.']));
 }
 
 $data = json_decode(file_get_contents('php://input'), true);
@@ -18,13 +18,13 @@ $attempt_id = $data['attempt_id'] ?? null;
 
 if (!$attempt_id) {
     http_response_code(400);
-    exit(json_encode(['error' => 'Missing attempt ID.']));
+    exit(json_encode(['success' => false, 'error' => 'Missing attempt ID.']));
 }
 
 try {
     $pdo->beginTransaction();
 
-    // --- **NEW:** Security check to ensure the exam is still 'In Progress' ---
+    // --- Security Check: Ensure the exam is still 'In Progress' ---
     $stmt_check = $pdo->prepare(
         "SELECT q.status_id 
          FROM quizzes q 
@@ -39,12 +39,18 @@ try {
         throw new Exception("Cannot re-enable student because the exam is no longer in progress.");
     }
 
-    // 1. Update the student's attempt status
-    $sql_update = "UPDATE student_attempts SET is_disqualified = 0, can_resume = 1 WHERE id = ?";
+    // 1. Update the student's attempt status to allow them to resume.
+    // This resets the disqualification flag and clears any submission data created by the disqualification event.
+    $sql_update = "UPDATE student_attempts SET 
+                       is_disqualified = 0, 
+                       can_resume = 1, 
+                       submitted_at = NULL, 
+                       total_score = NULL 
+                   WHERE id = ?";
     $stmt_update = $pdo->prepare($sql_update);
     $stmt_update->execute([$attempt_id]);
 
-    // 2. Log this action for auditing purposes
+    // 2. Log this action for auditing purposes.
     $stmt_attempt_info = $pdo->prepare("SELECT student_id FROM student_attempts WHERE id = ?");
     $stmt_attempt_info->execute([$attempt_id]);
     $student_user_id = $stmt_attempt_info->fetchColumn();
@@ -66,9 +72,10 @@ try {
     echo json_encode(['success' => true]);
 
 } catch (Exception $e) {
-    $pdo->rollBack();
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
     http_response_code(500);
     error_log("Re-enable failed: " . $e->getMessage());
-    // Send the specific error message back to the user
-    echo json_encode(['error' => $e->getMessage()]);
+    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }

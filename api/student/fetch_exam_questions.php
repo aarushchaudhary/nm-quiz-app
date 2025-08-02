@@ -4,6 +4,7 @@
  * Fetches questions for a student.
  * - Creates a new attempt with a unique, randomized question set if one doesn't exist.
  * - Resumes an existing attempt, preserving the original questions and timer.
+ * - Adds a final confirmation question at the end of a new attempt.
  */
 header('Content-Type: application/json');
 session_start();
@@ -40,7 +41,7 @@ try {
     $remaining_seconds = 0;
     $questions_with_options = [];
 
-    if ($attempt) {
+    if ($attempt && !empty($attempt['questions_json'])) {
         // --- RESUME EXISTING ATTEMPT ---
         if ($attempt['submitted_at'] !== null) {
             throw new Exception("You have already completed and submitted this exam.");
@@ -61,11 +62,15 @@ try {
 
     } else {
         // --- CREATE NEW ATTEMPT ---
-        // First, insert the basic attempt record to get an ID.
-        $sql_attempt = "INSERT INTO student_attempts (quiz_id, student_id) VALUES (?, ?)";
-        $stmt_attempt = $pdo->prepare($sql_attempt);
-        $stmt_attempt->execute([$quiz_id, $student_user_id]);
-        $attempt_id = $pdo->lastInsertId();
+        // If there's a partial attempt record without questions, use its ID. Otherwise, create a new one.
+        $attempt_id = $attempt ? $attempt['id'] : null;
+
+        if (!$attempt_id) {
+            $sql_attempt = "INSERT INTO student_attempts (quiz_id, student_id) VALUES (?, ?)";
+            $stmt_attempt = $pdo->prepare($sql_attempt);
+            $stmt_attempt->execute([$quiz_id, $student_user_id]);
+            $attempt_id = $pdo->lastInsertId();
+        }
 
         // Fetch questions based on quiz difficulty configuration
         $final_questions = [];
@@ -93,12 +98,24 @@ try {
         }
         shuffle($final_questions);
 
-        // Fetch and add randomized options to each question
+        // Fetch and add randomized options to each real question
         $stmt_options = $pdo->prepare("SELECT id, option_text FROM options WHERE question_id = ? ORDER BY RAND()");
         foreach ($final_questions as $key => $question) {
             $stmt_options->execute([$question['id']]);
             $final_questions[$key]['options'] = $stmt_options->fetchAll(PDO::FETCH_ASSOC);
         }
+
+        // **MODIFIED:** Add the final confirmation "dummy" question
+        $final_questions[] = [
+            'id' => 'final_submit', // A unique identifier for the frontend
+            'question_text' => 'You have reached the end of the exam. Please confirm to submit your attempt.',
+            'question_type_id' => 1, // Treat it like a Multiple Choice question for consistent handling
+            'options' => [
+                ['id' => 'yes', 'option_text' => 'Yes, submit my exam.'],
+                ['id' => 'no', 'option_text' => 'No, I want to review my answers.']
+            ]
+        ];
+        
         $questions_with_options = $final_questions;
         
         // Now, calculate the end time and store the generated questions and end time in the database

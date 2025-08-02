@@ -88,15 +88,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const currentStatusText = document.getElementById('current-status-text');
     const messageArea = document.getElementById('message-area');
 
-    // **FIX:** The monitoring and helper functions are now complete.
     async function fetchMonitoringData() {
         try {
             const response = await fetch(`/nmims_quiz_app/api/faculty/get_live_monitoring_data.php?id=${quizId}`);
             const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || 'Failed to fetch data');
-            }
+            if (!response.ok) throw new Error(data.error || 'Failed to fetch data');
             
             const students = data.students;
             const quizStatus = data.quiz_status;
@@ -108,23 +104,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 studentListBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No students are assigned to this quiz\'s course and batch.</td></tr>';
             } else {
                 students.forEach(student => {
-                    const statusClass = student.status.toLowerCase().replace(' ', '_');
+                    const statusClass = student.status.toLowerCase().replace(/ /g, '_');
                     let actionHtml = 'N/A';
                     
-                    if (student.status === 'Disqualified' && quizStatus === 'In Progress') {
-                        actionHtml = `<button class="button-red btn-reenable" style="width:auto; padding: 5px 10px; font-size: 12px;" data-attempt-id="${student.attempt_id}">Re-enable</button>`;
+                    if (student.is_disqualified && quizStatus === 'In Progress') {
+                        actionHtml = `<button class="btn-reenable" data-attempt-id="${student.attempt_id}">Re-enable</button>`;
                     }
 
-                    const row = `
-                        <tr>
-                            <td>${escapeHTML(student.name)}</td>
-                            <td>${escapeHTML(student.sap_id)}</td>
-                            <td><span class="status-badge status-${statusClass}">${escapeHTML(student.status)}</span></td>
-                            <td>${escapeHTML(student.progress)}</td>
-                            <td>${actionHtml}</td>
-                        </tr>
-                    `;
-                    studentListBody.innerHTML += row;
+                    const row = `<tr>
+                        <td>${escapeHTML(student.name)}</td>
+                        <td>${escapeHTML(student.sap_id)}</td>
+                        <td><span class="status-badge status-${statusClass}">${escapeHTML(student.status)}</span></td>
+                        <td>${escapeHTML(student.progress)}</td>
+                        <td class="action-buttons">${actionHtml}</td>
+                    </tr>`;
+                    studentListBody.insertAdjacentHTML('beforeend', row);
                 });
             }
         } catch (error) {
@@ -139,29 +133,25 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     studentListBody.addEventListener('click', async function(e) {
-        if (e.target && e.target.classList.contains('btn-reenable')) {
-            const attemptId = e.target.dataset.attemptId;
-            if (!attemptId) {
-                alert('Error: Could not find student attempt ID.');
-                return;
-            }
-            if (confirm('Are you sure you want to re-enable this student?')) {
-                e.target.disabled = true;
-                e.target.textContent = 'Enabling...';
-                try {
-                    const response = await fetch('/nmims_quiz_app/api/faculty/reenable_student.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ attempt_id: attemptId })
-                    });
-                    const result = await response.json();
-                    if (!result.success) throw new Error(result.error || 'API Error');
-                    fetchMonitoringData();
-                } catch (error) {
-                    alert('Failed to re-enable student. ' + error.message);
-                    e.target.disabled = false;
-                    e.target.textContent = 'Re-enable';
-                }
+        const button = e.target.closest('button.btn-reenable');
+        if (!button) return;
+        
+        if (confirm('Are you sure you want to re-enable this student?')) {
+            const attemptId = button.dataset.attemptId;
+            button.disabled = true;
+            button.textContent = '...';
+            try {
+                const response = await fetch('/nmims_quiz_app/api/faculty/reenable_student.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ attempt_id: attemptId })
+                });
+                const result = await response.json();
+                if (!result.success) throw new Error(result.error);
+                fetchMonitoringData();
+            } catch (error) {
+                alert(`Action failed: ${error.message}`);
+                fetchMonitoringData();
             }
         }
     });
@@ -170,23 +160,17 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.target.tagName === 'BUTTON') {
             const newStatusId = e.target.dataset.newStatusId;
             const actionText = e.target.textContent;
-
-            if (actionText === 'End Exam Now' && !confirm('Are you sure you want to end the exam for all students? This cannot be undone.')) {
-                return;
-            }
+            if (actionText === 'End Exam Now' && !confirm('Are you sure?')) return;
 
             e.target.disabled = true;
             e.target.textContent = 'Updating...';
-
             try {
                 const response = await fetch('/nmims_quiz_app/api/faculty/update_quiz_status.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ quiz_id: quizId, new_status_id: newStatusId })
                 });
-                
                 const result = await response.json();
-
                 if (result.success) {
                     currentStatusText.textContent = result.new_status_name;
                     updateControlButtons(result.new_status_name);

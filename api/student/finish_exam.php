@@ -7,6 +7,7 @@ header('Content-Type: application/json');
 session_start();
 require_once '../../config/database.php';
 
+// --- Authorization & Request Method Check ---
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user_id']) || $_SESSION['role_id'] != 4) {
     http_response_code(403);
     exit(json_encode(['error' => 'Unauthorized access.']));
@@ -24,68 +25,70 @@ if (!$attempt_id) {
 try {
     $pdo->beginTransaction();
 
-    // 1. Fetch all of the student's answers for this attempt
-    $stmt_answers = $pdo->prepare("SELECT id, question_id, selected_option_ids FROM student_answers WHERE attempt_id = ?");
-    $stmt_answers->execute([$attempt_id]);
-    $student_answers = $stmt_answers->fetchAll();
+    // --- **CRITICAL FIX:** Handle disqualification separately from normal submission ---
+    if ($is_disqualified) {
+        // If a student is disqualified, we ONLY lock their attempt.
+        // We set a submission time to mark the end, but do not calculate a score.
+        $sql = "UPDATE student_attempts 
+                SET is_disqualified = 1, can_resume = 0, submitted_at = NOW() 
+                WHERE id = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$attempt_id]);
+    } else {
+        // --- Handle Normal Exam Finish ---
+        // 1. Grade the student's answers and calculate the score
+        $stmt_answers = $pdo->prepare(
+            "SELECT sa.id, sa.question_id, sa.selected_option_ids, q.question_type_id, q.points 
+             FROM student_answers sa 
+             JOIN questions q ON sa.question_id = q.id 
+             WHERE sa.attempt_id = ?"
+        );
+        $stmt_answers->execute([$attempt_id]);
+        $student_answers = $stmt_answers->fetchAll();
 
-    $total_score = 0;
+        $total_score = 0;
+        $stmt_update_answer = $pdo->prepare("UPDATE student_answers SET is_correct = ? WHERE id = ?");
 
-    // Prepare statement for updating the correctness of each answer
-    $stmt_update_answer = $pdo->prepare("UPDATE student_answers SET is_correct = ? WHERE id = ?");
+        foreach ($student_answers as $answer) {
+            $question_id = $answer['question_id'];
+            $selected_ids = json_decode($answer['selected_option_ids'], true) ?? [];
+            $is_correct_value = null;
 
-    // 2. Loop through each answer to grade it
-    foreach ($student_answers as $answer) {
-        $question_id = $answer['question_id'];
-        $selected_ids = json_decode($answer['selected_option_ids'], true) ?? [];
-
-        $stmt_question = $pdo->prepare("SELECT question_type_id, points FROM questions WHERE id = ?");
-        $stmt_question->execute([$question_id]);
-        $question_info = $stmt_question->fetch();
-        
-        $is_correct_value = null; // Default to NULL for descriptive questions
-
-        if ($question_info && ($question_info['question_type_id'] == 1 || $question_info['question_type_id'] == 2)) {
-            $stmt_correct = $pdo->prepare("SELECT id FROM options WHERE question_id = ? AND is_correct = 1");
-            $stmt_correct->execute([$question_id]);
-            $correct_ids = $stmt_correct->fetchAll(PDO::FETCH_COLUMN, 0);
-
-            sort($selected_ids);
-            sort($correct_ids);
-
-            if ($selected_ids == $correct_ids) {
-                $is_correct_value = 1; // Correct
-                $total_score += $question_info['points'];
-            } else {
-                $is_correct_value = 0; // Incorrect
+            if ($answer['question_type_id'] == 1 || $answer['question_type_id'] == 2) {
+                $stmt_correct = $pdo->prepare("SELECT id FROM options WHERE question_id = ? AND is_correct = 1");
+                $stmt_correct->execute([$question_id]);
+                $correct_ids = $stmt_correct->fetchAll(PDO::FETCH_COLUMN, 0);
+                sort($selected_ids);
+                sort($correct_ids);
+                if (!empty($selected_ids) && $selected_ids == $correct_ids) {
+                    $is_correct_value = 1;
+                    $total_score += $answer['points'];
+                } else {
+                    $is_correct_value = 0;
+                }
             }
+            $stmt_update_answer->execute([$is_correct_value, $answer['id']]);
         }
-        
-        // Update the student_answers table with the result
-        $stmt_update_answer->execute([$is_correct_value, $answer['id']]);
+
+        // 2. Update the final status of the student's attempt.
+        $sql_update_attempt = "UPDATE student_attempts SET 
+                                    total_score = ?, 
+                                    submitted_at = NOW(), 
+                                    is_disqualified = 0,
+                                    can_resume = 0
+                               WHERE id = ?";
+        $stmt_update = $pdo->prepare($sql_update_attempt);
+        $stmt_update->execute([$total_score, $attempt_id]);
     }
-
-    // 3. Update the student_attempts table with corrected logic
-    $sql_update_attempt = "UPDATE student_attempts SET 
-                                total_score = ?, 
-                                submitted_at = ?, -- Use a variable for the timestamp
-                                is_disqualified = ?,
-                                can_resume = ? -- Lock the attempt
-                           WHERE id = ?";
-    $stmt_update = $pdo->prepare($sql_update_attempt);
-
-    // If disqualified, submitted_at is NULL. If finished normally, submitted_at is the current time.
-    $submitted_at_value = $is_disqualified ? null : date("Y-m-d H:i:s");
-    $can_resume_value = 0; // Lock the attempt in both cases so it can't be re-entered without faculty action.
-
-    $stmt_update->execute([$total_score, $submitted_at_value, $is_disqualified ? 1 : 0, $can_resume_value, $attempt_id]);
 
     $pdo->commit();
     echo json_encode(['success' => true]);
 
 } catch (Exception $e) {
-    $pdo->rollBack();
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
     http_response_code(500);
-    error_log("Finish exam failed: " . $e->getMessage());
+    error_log("Finish exam failed for attempt_id {$attempt_id}: " . $e->getMessage());
     echo json_encode(['error' => 'Database error while finalizing exam.']);
 }

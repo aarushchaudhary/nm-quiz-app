@@ -32,7 +32,6 @@ document.addEventListener('DOMContentLoaded', async function() {
             examState.questions = data.questions;
             examState.attemptId = data.attempt_id;
 
-            // Activate proctoring only AFTER a valid attemptId is received.
             document.addEventListener('visibilitychange', handleVisibilityChange);
             document.addEventListener('fullscreenchange', handleFullscreenChange);
             document.addEventListener('contextmenu', event => event.preventDefault());
@@ -49,35 +48,58 @@ document.addEventListener('DOMContentLoaded', async function() {
             ui.examContainer.style.display = 'flex';
 
         } catch (error) {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            document.removeEventListener('fullscreenchange', handleFullscreenChange);
+            document.removeEventListener('contextmenu', event => event.preventDefault());
+            document.removeEventListener('keydown', handleKeyDown);
             alert(`Error starting exam: ${error.message}`);
             window.location.href = 'dashboard.php';
         }
     }
 
+    /**
+     * Renders the current question or the final submission screen.
+     */
     function renderQuestion() {
         const q = examState.questions[examState.currentQuestionIndex];
         ui.questionCounter.textContent = `Question ${examState.currentQuestionIndex + 1} of ${examState.questions.length}`;
         ui.questionText.textContent = q.question_text;
         ui.optionsGrid.innerHTML = '';
-        if (q.question_type_id == 3) {
-            ui.optionsGrid.innerHTML = `<textarea id="descriptive-answer" class="descriptive-answer-area" placeholder="Type your answer here..." spellcheck="false"></textarea>`;
+
+        // Check if it's the special final submission question
+        if (q.id === 'final_submit') {
+            ui.optionsGrid.innerHTML = `
+                <label class="option-label"><input type="radio" name="option" value="yes"> <span>Yes, submit my exam.</span></label>
+                <label class="option-label"><input type="radio" name="option" value="no" checked> <span>No, I want to review my answers.</span></label>
+            `;
+            ui.nextBtn.textContent = 'Finish Exam';
+            ui.nextBtn.disabled = false;
         } else {
-            const inputType = q.question_type_id == 1 ? 'radio' : 'checkbox';
-            q.options.forEach(opt => {
-                const label = document.createElement('label');
-                label.className = 'option-label';
-                label.innerHTML = `<input type="${inputType}" name="option" value="${opt.id}"> <span>${opt.option_text}</span>`;
-                ui.optionsGrid.appendChild(label);
-            });
+            // It's a regular question, render it based on its type
+            if (q.question_type_id == 3) {
+                ui.optionsGrid.innerHTML = `<textarea id="descriptive-answer" class="descriptive-answer-area" placeholder="Type your answer here..." spellcheck="false"></textarea>`;
+            } else {
+                const inputType = q.question_type_id == 1 ? 'radio' : 'checkbox';
+                q.options.forEach(opt => {
+                    const label = document.createElement('label');
+                    label.className = 'option-label';
+                    label.innerHTML = `<input type="${inputType}" name="option" value="${opt.id}"> <span>${opt.option_text}</span>`;
+                    ui.optionsGrid.appendChild(label);
+                });
+            }
+            ui.nextBtn.textContent = (examState.currentQuestionIndex === examState.questions.length - 2) ? 'Next (Final Question)' : 'Next Question';
+            ui.nextBtn.disabled = true;
         }
+        
         examState.questionStartTime = Date.now();
-        ui.nextBtn.textContent = (examState.currentQuestionIndex === examState.questions.length - 1) ? 'Finish Exam' : 'Next Question';
-        ui.nextBtn.disabled = true;
     }
 
     async function saveCurrentAnswer() {
         if (proctoringState.examFinished) return;
         const q = examState.questions[examState.currentQuestionIndex];
+
+        if (q.id === 'final_submit') return;
+
         const timeSpent = Math.round((Date.now() - examState.questionStartTime) / 1000);
         let payload = {
             attempt_id: examState.attemptId,
@@ -92,22 +114,51 @@ document.addEventListener('DOMContentLoaded', async function() {
             payload.selected_option_ids = Array.from(ui.optionsGrid.querySelectorAll('input:checked')).map(i => i.value);
         }
         try {
-            await fetch('/nmims_quiz_app/api/student/save_answer.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-        } catch (error) { console.error('Failed to save answer:', error); }
+            const response = await fetch('/nmims_quiz_app/api/student/save_answer.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to save answer.');
+            }
+        } catch (error) {
+            console.error(error);
+            alert(`Error saving answer: ${error.message}`);
+        }
     }
 
+    /**
+     * Finishes the exam, sending the last answer if it's a normal submission.
+     */
     async function finishExam(isDisqualified = false) {
         if (proctoringState.examFinished) return;
         proctoringState.examFinished = true;
+        
         ui.nextBtn.disabled = true;
         ui.nextBtn.textContent = 'Submitting...';
-        await saveCurrentAnswer();
+
+        let bodyPayload = { 
+            attempt_id: examState.attemptId, 
+            is_disqualified: isDisqualified 
+        };
+
+        // Only send the last answer if it's a normal (not disqualified) submission.
+        if (!isDisqualified) {
+            const lastQuestion = examState.questions[examState.currentQuestionIndex];
+            const timeSpent = Math.round((Date.now() - examState.questionStartTime) / 1000);
+            bodyPayload.last_answer = {
+                question_id: lastQuestion.id,
+                time_spent: timeSpent,
+                selected_option_ids: (lastQuestion.question_type_id != 3) ? Array.from(ui.optionsGrid.querySelectorAll('input:checked')).map(i => i.value) : [],
+                answer_text: (lastQuestion.question_type_id == 3) ? document.getElementById('descriptive-answer').value : ''
+            };
+        }
+
         try {
             await fetch('/nmims_quiz_app/api/student/finish_exam.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ attempt_id: examState.attemptId, is_disqualified: isDisqualified })
+                body: JSON.stringify(bodyPayload)
             });
+
             if (isDisqualified) {
                 window.location.href = `disqualified.php?attempt_id=${examState.attemptId}`;
             } else {
@@ -140,6 +191,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         }, 1000);
     }
     
+    // --- Proctoring & Status Check Functions ---
     async function checkQuizStatus() {
         if (proctoringState.examFinished) return;
         try {
@@ -198,58 +250,59 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
 
-    // **MODIFIED:** The keydown handler now checks for more shortcuts.
     function handleKeyDown(event) {
         if (proctoringState.examFinished) return;
-        
+        if (event.metaKey || event.altKey) {
+            event.preventDefault();
+            triggerViolation(`Attempted to use a system command (Windows/Alt key). Warning #${proctoringState.warningCount + 1}.`);
+        }
         const key = event.key.toUpperCase();
         const ctrl = event.ctrlKey;
         const shift = event.shiftKey;
-        const alt = event.altKey;
-
-        // Block system commands like Alt+Tab, Windows key, etc.
-        if (alt || event.metaKey) {
+        if (key === 'F12' || (ctrl && shift && key === 'I') || (ctrl && shift && key === 'J') || (ctrl && key === 'U') || (ctrl && key === 'R')) {
             event.preventDefault();
-            triggerViolation(`Attempted to use a system command (Alt/Meta key). Warning #${proctoringState.warningCount + 1}.`);
-        }
-        
-        // Block developer tools
-        if (key === 'F12' || (ctrl && shift && key === 'I') || (ctrl && shift && key === 'J') || (ctrl && key === 'U')) {
-            event.preventDefault();
-            triggerViolation(`Attempted to use developer tools shortcut. Warning #${proctoringState.warningCount + 1}.`);
-        }
-        
-        // Block all forms of refresh
-        if (ctrl && key === 'R') {
-            event.preventDefault();
-            triggerViolation(`Attempted to refresh the page (Ctrl+R). Warning #${proctoringState.warningCount + 1}.`);
-        }
-        
-        // Attempt to detect Ctrl+Alt+Delete (may be intercepted by OS first)
-        if (ctrl && alt && event.key === 'Delete') {
-             event.preventDefault();
-             triggerViolation(`Attempted to use Ctrl+Alt+Delete. Warning #${proctoringState.warningCount + 1}.`);
+            triggerViolation(`Attempted to use a restricted shortcut (${event.key}). Warning #${proctoringState.warningCount + 1}.`);
         }
     }
 
+    // --- Event Listeners ---
     ui.nextBtn.addEventListener('click', async () => {
-        if (examState.currentQuestionIndex < examState.questions.length - 1) {
-            await saveCurrentAnswer();
-            examState.currentQuestionIndex++;
-            renderQuestion();
+        const currentQuestion = examState.questions[examState.currentQuestionIndex];
+        
+        if (currentQuestion.id === 'final_submit') {
+            const decision = ui.optionsGrid.querySelector('input:checked').value;
+            if (decision === 'yes') {
+                finishExam();
+            } else {
+                examState.currentQuestionIndex--;
+                renderQuestion();
+            }
         } else {
-            finishExam();
+            await saveCurrentAnswer();
+            if (examState.currentQuestionIndex < examState.questions.length - 1) {
+                examState.currentQuestionIndex++;
+                renderQuestion();
+            } else {
+                finishExam();
+            }
         }
     });
 
     ui.optionsGrid.addEventListener('input', () => {
-        if (examState.questions[examState.currentQuestionIndex].question_type_id == 3) {
+        const currentQuestion = examState.questions[examState.currentQuestionIndex];
+        if (currentQuestion.id === 'final_submit') {
+             ui.nextBtn.disabled = false;
+             return;
+        }
+
+        if (currentQuestion.question_type_id == 3) {
             ui.nextBtn.disabled = document.getElementById('descriptive-answer').value.trim() === '';
         } else {
             ui.nextBtn.disabled = ui.optionsGrid.querySelectorAll('input:checked').length === 0;
         }
     });
     
+    // --- Initializer ---
     async function initializeExam() {
         document.body.classList.add('exam-mode');
         if (ui.clickPrompt) {
