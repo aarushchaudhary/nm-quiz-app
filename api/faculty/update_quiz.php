@@ -25,9 +25,12 @@ $config_medium_count = filter_input(INPUT_POST, 'config_medium_count', FILTER_VA
 $config_hard_count = filter_input(INPUT_POST, 'config_hard_count', FILTER_VALIDATE_INT);
 $faculty_id = $_SESSION['user_id'];
 
-// **NEW:** Get SAP ID range, use null if the fields are empty
+// Get SAP ID range, use null if the fields are empty
 $sap_start = !empty($_POST['sap_id_range_start']) ? filter_var($_POST['sap_id_range_start'], FILTER_SANITIZE_NUMBER_INT) : null;
 $sap_end = !empty($_POST['sap_id_range_end']) ? filter_var($_POST['sap_id_range_end'], FILTER_SANITIZE_NUMBER_INT) : null;
+
+// ✅ NEW: Handle the toggle switch value.
+$show_results = isset($_POST['show_results_immediately']) ? 1 : 0; // 1 for TRUE, 0 for FALSE
 
 
 // --- Basic Validation ---
@@ -36,7 +39,7 @@ if (!$quiz_id || empty($title) || !$course_id || !$graduation_year || !$duration
     exit();
 }
 
-// --- Prepare and Execute SQL UPDATE Statement ---
+// ✅ NEW: Updated SQL statement to include the new column in the SET clause.
 $sql = "UPDATE quizzes SET
             title = :title,
             course_id = :course_id,
@@ -48,11 +51,13 @@ $sql = "UPDATE quizzes SET
             config_medium_count = :config_medium_count,
             config_hard_count = :config_hard_count,
             sap_id_range_start = :sap_start,
-            sap_id_range_end = :sap_end
+            sap_id_range_end = :sap_end,
+            show_results_immediately = :show_results
         WHERE id = :quiz_id AND faculty_id = :faculty_id";
 
 try {
     $stmt = $pdo->prepare($sql);
+    // ✅ NEW: Added the new parameter to the execution array.
     $stmt->execute([
         ':title' => $title,
         ':course_id' => $course_id,
@@ -65,6 +70,7 @@ try {
         ':config_hard_count' => $config_hard_count,
         ':sap_start' => $sap_start,
         ':sap_end' => $sap_end,
+        ':show_results' => $show_results,
         ':quiz_id' => $quiz_id,
         ':faculty_id' => $faculty_id
     ]);

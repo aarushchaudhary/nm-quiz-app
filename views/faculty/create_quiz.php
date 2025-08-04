@@ -1,6 +1,6 @@
 <?php
   $pageTitle = 'Create New Quiz';
-  $customCSS = 'manage.css';
+  $customCSS = 'manage.css'; // This line loads your stylesheet
   require_once '../../assets/templates/header.php';
   require_once '../../config/database.php';
 
@@ -13,7 +13,6 @@
   // --- Fetch data for dropdowns ---
   $schools = $pdo->query("SELECT id, name FROM schools ORDER BY name ASC")->fetchAll();
   
-  // **FIX:** The query now correctly fetches the student's name from the 'students' table.
   $students_stmt = $pdo->query("
     SELECT s.sap_id, s.name as full_name
     FROM students s
@@ -110,6 +109,15 @@
       <div class="form-group"><label for="medium_count">Medium Questions</label><input type="number" id="medium_count" name="config_medium_count" min="0" value="0" required></div>
       <div class="form-group"><label for="hard_count">Hard Questions</label><input type="number" id="hard_count" name="config_hard_count" min="0" value="0" required></div>
     </div>
+
+    <div class="form-group toggle-switch">
+      <label for="show_results_immediately">Show Results to Students Immediately?</label>
+      <label class="switch">
+        <input type="checkbox" id="show_results_immediately" name="show_results_immediately" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+
     <div class="form-group" style="text-align: center; margin-top: 30px;">
       <button type="submit" class="button-red" style="width: auto; padding: 12px 40px;">Create Quiz</button>
     </div>
@@ -121,7 +129,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // **NEW:** Initialize Select2 on the student dropdowns
+    // Initialize Select2 on the student dropdowns
     $('.student-select').select2({
         placeholder: "Search by Name or SAP ID",
         allowClear: true

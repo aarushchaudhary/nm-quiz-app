@@ -24,9 +24,12 @@ $config_medium_count = filter_input(INPUT_POST, 'config_medium_count', FILTER_VA
 $config_hard_count = filter_input(INPUT_POST, 'config_hard_count', FILTER_VALIDATE_INT);
 $faculty_id = $_SESSION['user_id'];
 
-// **NEW:** Get SAP ID range, use null if the fields are empty
+// Get SAP ID range, use null if the fields are empty
 $sap_start = !empty($_POST['sap_id_range_start']) ? filter_var($_POST['sap_id_range_start'], FILTER_SANITIZE_NUMBER_INT) : null;
 $sap_end = !empty($_POST['sap_id_range_end']) ? filter_var($_POST['sap_id_range_end'], FILTER_SANITIZE_NUMBER_INT) : null;
+
+// ✅ NEW: Handle the toggle switch value. It will be 'on' if checked, otherwise not set.
+$show_results = isset($_POST['show_results_immediately']) ? 1 : 0; // 1 for TRUE, 0 for FALSE
 
 
 // --- Basic Validation ---
@@ -35,19 +38,20 @@ if (empty($title) || !$course_id || !$graduation_year || !$duration_minutes) {
     exit();
 }
 
-// --- Prepare and Execute SQL INSERT Statement ---
+// ✅ NEW: Updated SQL statement to include the new column
 $sql = "INSERT INTO quizzes (
             title, faculty_id, course_id, graduation_year, start_time, end_time, 
             duration_minutes, status_id, config_easy_count, config_medium_count, config_hard_count,
-            sap_id_range_start, sap_id_range_end
+            sap_id_range_start, sap_id_range_end, show_results_immediately
         ) VALUES (
             :title, :faculty_id, :course_id, :graduation_year, :start_time, :end_time,
             :duration_minutes, 1, :config_easy_count, :config_medium_count, :config_hard_count,
-            :sap_start, :sap_end
+            :sap_start, :sap_end, :show_results
         )";
 
 try {
     $stmt = $pdo->prepare($sql);
+    // ✅ NEW: Added the new parameter to the execution array
     $stmt->execute([
         ':title' => $title,
         ':faculty_id' => $faculty_id,
@@ -60,7 +64,8 @@ try {
         ':config_medium_count' => $config_medium_count,
         ':config_hard_count' => $config_hard_count,
         ':sap_start' => $sap_start,
-        ':sap_end' => $sap_end
+        ':sap_end' => $sap_end,
+        ':show_results' => $show_results
     ]);
 
     header('Location: /nmims_quiz_app/views/faculty/manage_quizzes.php?success=quiz_created');

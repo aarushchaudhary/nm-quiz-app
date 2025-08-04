@@ -13,8 +13,13 @@
   $attempt_id = filter_var($_GET['attempt_id'], FILTER_VALIDATE_INT);
   $student_user_id = $_SESSION['user_id'];
 
-  // --- Fetch Attempt Details ---
-  $sql = "SELECT sa.*, q.title as quiz_title, q.config_easy_count, q.config_medium_count, q.config_hard_count
+  // ✅ NEW: Updated SQL to fetch the 'show_results_immediately' flag from the quiz.
+  $sql = "SELECT sa.*, 
+                 q.title as quiz_title, 
+                 q.config_easy_count, 
+                 q.config_medium_count, 
+                 q.config_hard_count,
+                 q.show_results_immediately
           FROM student_attempts sa
           JOIN quizzes q ON sa.quiz_id = q.id
           WHERE sa.id = ? AND sa.student_id = ?";
@@ -26,7 +31,29 @@
       header('Location: dashboard.php?error=attempt_not_found');
       exit();
   }
+
+  // ✅ NEW: CRITICAL CHECK! See if results have been released by the faculty.
+  if (!$attempt['show_results_immediately']) {
+      // If the flag is FALSE (0), show a pending message and stop the script.
+      echo '<div class="lobby-container">
+                <h2>Results Pending</h2>
+                <p class="lobby-instructions" style="text-align: center; max-width: 500px; margin: 20px auto;">
+                    Your detailed results for this quiz have not been released yet by the faculty. Please check back later.
+                </p>
+                <a href="dashboard.php" class="button-red" style="width: auto; padding: 12px 30px; margin-top: 20px; text-decoration: none;">
+                    Back to Dashboard
+                </a>
+            </div>';
+      
+      // Include the footer to maintain page structure
+      require_once '../../assets/templates/footer.php';
+      
+      // Stop the rest of the script from executing
+      exit();
+  }
   
+  // --- This part of the script will ONLY run if the results are released ---
+
   // --- Fetch Performance Breakdown ---
   $stmt_correct = $pdo->prepare("SELECT COUNT(*) FROM student_answers WHERE attempt_id = ? AND is_correct = 1");
   $stmt_correct->execute([$attempt_id]);
@@ -73,7 +100,7 @@
 
 <script src="/nmims_quiz_app/lib/chartjs/chart.umd.js"></script>
 <script>
-// Chart.js initialization script remains the same
+// Chart.js initialization script
 document.addEventListener('DOMContentLoaded', function() {
     const ctx = document.getElementById('resultsChart').getContext('2d');
     new Chart(ctx, {

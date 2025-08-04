@@ -29,7 +29,6 @@
   // --- Fetch data for dropdowns ---
   $schools = $pdo->query("SELECT id, name FROM schools ORDER BY name ASC")->fetchAll();
   
-  // **FIX:** The query now correctly fetches the student's name from the 'students' table.
   $students_stmt = $pdo->query("
     SELECT s.sap_id, s.name as full_name
     FROM students s
@@ -41,6 +40,10 @@
   function format_datetime_for_input($datetime) {
       return date('Y-m-d\TH:i', strtotime($datetime));
   }
+
+  // ✅ NEW: Determine if the 'show_results_immediately' checkbox should be checked
+  $is_results_immediate_checked = $quiz['show_results_immediately'] ? 'checked' : '';
+
 ?>
 
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -124,6 +127,15 @@
       <div class="form-group"><label>Medium Questions</label><input type="number" name="config_medium_count" value="<?php echo htmlspecialchars($quiz['config_medium_count']); ?>" min="0" required></div>
       <div class="form-group"><label>Hard Questions</label><input type="number" name="config_hard_count" value="<?php echo htmlspecialchars($quiz['config_hard_count']); ?>" min="0" required></div>
     </div>
+
+    <div class="form-group toggle-switch">
+        <label for="show_results_immediately">Show Results to Students Immediately?</label>
+        <label class="switch">
+            <input type="checkbox" id="show_results_immediately" name="show_results_immediately" <?= $is_results_immediate_checked ?>>
+            <span class="slider"></span>
+        </label>
+    </div>
+
     <div class="form-group" style="text-align: center; margin-top: 30px;">
       <button type="submit" class="button-red" style="width: auto; padding: 12px 40px;">Save Changes</button>
       <a href="manage_quizzes.php" style="display:inline-block; margin-left:15px; color:#555;">Cancel</a>
