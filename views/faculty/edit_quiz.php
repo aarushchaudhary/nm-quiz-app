@@ -12,7 +12,7 @@
   $quiz_id = filter_var($_GET['id'], FILTER_VALIDATE_INT);
   $faculty_id = $_SESSION['user_id'];
 
-  // --- Fetch the quiz data, including the school_id ---
+  // --- Fetch the quiz data ---
   $stmt_quiz = $pdo->prepare("
       SELECT q.*, c.school_id 
       FROM quizzes q
@@ -26,13 +26,29 @@
       exit();
   }
 
-  // Fetch all schools for the dropdown
+  // --- Fetch data for dropdowns ---
   $schools = $pdo->query("SELECT id, name FROM schools ORDER BY name ASC")->fetchAll();
+  
+  // **FIX:** The query now correctly fetches the student's name from the 'students' table.
+  $students_stmt = $pdo->query("
+    SELECT s.sap_id, s.name as full_name
+    FROM students s
+    WHERE s.sap_id IS NOT NULL AND s.name IS NOT NULL
+    ORDER BY s.name ASC
+  ");
+  $students = $students_stmt->fetchAll(PDO::FETCH_ASSOC);
 
   function format_datetime_for_input($datetime) {
       return date('Y-m-d\TH:i', strtotime($datetime));
   }
 ?>
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+  /* Optional: Improve Select2 appearance */
+  .select2-container .select2-selection--single { height: 42px; border: 1px solid #ced4da; padding-top: 5px;}
+  .select2-container--default .select2-selection--single .select2-selection__arrow { height: 40px; }
+</style>
 
 <div class="form-container">
   <h2>Edit Quiz Details</h2>
@@ -81,10 +97,25 @@
     <div class="form-row">
         <div class="form-group">
             <label for="sap_id_start">SAP ID Range (Optional)</label>
-            <input type="text" name="sap_id_range_start" id="sap_id_start" class="input-field" placeholder="Starting SAP ID" value="<?php echo htmlspecialchars($quiz['sap_id_range_start']); ?>">
+            <select name="sap_id_range_start" id="sap_id_start" class="student-select">
+                <option></option> 
+                <?php foreach ($students as $student): ?>
+                    <option value="<?php echo htmlspecialchars($student['sap_id']); ?>" <?php if ($student['sap_id'] == $quiz['sap_id_range_start']) echo 'selected'; ?>>
+                        <?php echo htmlspecialchars($student['full_name'] . ' (' . $student['sap_id'] . ')'); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
         </div>
         <div class="form-group">
-            <label for="sap_id_end">&nbsp;</label> <input type="text" name="sap_id_range_end" id="sap_id_end" class="input-field" placeholder="Ending SAP ID" value="<?php echo htmlspecialchars($quiz['sap_id_range_end']); ?>">
+            <label for="sap_id_end">End SAP ID (Optional)</label>
+            <select name="sap_id_range_end" id="sap_id_end" class="student-select">
+                <option></option> 
+                <?php foreach ($students as $student): ?>
+                    <option value="<?php echo htmlspecialchars($student['sap_id']); ?>" <?php if ($student['sap_id'] == $quiz['sap_id_range_end']) echo 'selected'; ?>>
+                        <?php echo htmlspecialchars($student['full_name'] . ' (' . $student['sap_id'] . ')'); ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
         </div>
     </div>
     
@@ -100,13 +131,22 @@
   </form>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Select2 on the new student dropdowns
+    $('.student-select').select2({
+        placeholder: "Search by Name or SAP ID",
+        allowClear: true
+    });
+
+    // --- Existing script for cascading dropdowns ---
     const schoolSelect = document.getElementById('school_id');
     const courseSelect = document.getElementById('course_id');
     const yearSelect = document.getElementById('graduation_year');
 
-    // Store the pre-selected values from PHP
     const preselectedCourseId = <?php echo json_encode($quiz['course_id']); ?>;
     const preselectedYear = <?php echo json_encode($quiz['graduation_year']); ?>;
 
@@ -142,7 +182,6 @@ document.addEventListener('DOMContentLoaded', function() {
         yearSelect.disabled = false;
     }
 
-    // Event listeners for changes
     schoolSelect.addEventListener('change', function() {
         populateCourses(this.value);
         yearSelect.innerHTML = '<option value="">-- Select Course First --</option>';
@@ -153,7 +192,6 @@ document.addEventListener('DOMContentLoaded', function() {
         populateYears(this.value);
     });
 
-    // Initial population on page load
     async function initializeDropdowns() {
         await populateCourses(schoolSelect.value, preselectedCourseId);
         await populateYears(courseSelect.value, preselectedYear);
