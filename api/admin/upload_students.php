@@ -17,7 +17,6 @@ if (!isset($_FILES['student_file']) || $_FILES['student_file']['error'] !== UPLO
 }
 
 $file = $_FILES['student_file']['tmp_name'];
-$default_password = password_hash('Welcome123', PASSWORD_DEFAULT);
 $student_role_id = 4; // Assuming 4 is the role ID for students
 
 try {
@@ -37,6 +36,7 @@ try {
 
     $stmt_course_lookup = $pdo->prepare("SELECT c.id FROM courses c JOIN schools s ON c.school_id = s.id WHERE s.name = ? AND c.name = ?");
 
+    // Loop from row 2 to skip the header
     for ($row = 2; $row <= $highestRow; $row++) {
         $full_name = trim($sheet->getCell('A' . $row)->getValue());
         $sap_id = trim($sheet->getCell('B' . $row)->getValue());
@@ -46,18 +46,21 @@ try {
         $graduation_year = trim($sheet->getCell('F' . $row)->getValue());
         $batch = trim($sheet->getCell('G' . $row)->getValue());
         $username = trim($sheet->getCell('H' . $row)->getValue());
+        $password = trim($sheet->getCell('I' . $row)->getValue());
 
         if (empty($username) || empty($full_name)) continue;
         
+        $password_to_hash = !empty($password) ? $password : 'Welcome123';
+        $password_hash = password_hash($password_to_hash, PASSWORD_DEFAULT);
+        
         $stmt_course_lookup->execute([$school_name, $course_name]);
         $course_id = $stmt_course_lookup->fetchColumn();
-
         if (!$course_id) {
-            throw new Exception("Could not find a course matching School '{$school_name}' and Course Name '{$course_name}' on row {$row}.");
+            throw new Exception("Could not find course '{$course_name}' in school '{$school_name}' on row {$row}.");
         }
         
         // **FIX:** Create user record without the name.
-        $stmt_user->execute([$username, $default_password, $student_role_id]);
+        $stmt_user->execute([$username, $password_hash, $student_role_id]);
         $new_user_id = $pdo->lastInsertId();
 
         // **FIX:** Create student record, now including the name in the correct table.

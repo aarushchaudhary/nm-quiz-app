@@ -1,8 +1,7 @@
 <?php
 /*
  * api/faculty/get_live_monitoring_data.php
- * Fetches a paginated, real-time status of all students for a specific quiz,
- * with disqualified and locked students shown first.
+ * Fetches a paginated, real-time status of all students for a specific quiz.
  */
 header('Content-Type: application/json');
 session_start();
@@ -15,9 +14,9 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 2 || !isset($_GET['i
 }
 $quiz_id = $_GET['id'];
 
-// --- Pagination Parameters ---
+// --- **MODIFIED:** Pagination Parameters now include a dynamic limit ---
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$limit = 10; // You can adjust this to change the number of students per page
+$limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10; // Default to 10 if not provided
 $offset = ($page - 1) * $limit;
 
 try {
@@ -28,22 +27,28 @@ try {
     $total_questions = ($quiz_info['config_easy_count'] ?? 0) + ($quiz_info['config_medium_count'] ?? 0) + ($quiz_info['config_hard_count'] ?? 0);
     $quiz_status = $quiz_info['status_name'] ?? 'Unknown';
 
-    // 2. **MODIFIED:** Get the TOTAL number of students for this quiz for pagination
+    // 2. Get the TOTAL number of students for this quiz for pagination
     $sql_total = "SELECT COUNT(s.user_id) FROM students s JOIN quizzes q ON s.course_id = q.course_id AND s.graduation_year = q.graduation_year WHERE q.id = ?";
     $stmt_total = $pdo->prepare($sql_total);
     $stmt_total->execute([$quiz_id]);
     $total_students = $stmt_total->fetchColumn();
-    $total_pages = ceil($total_students / $limit);
+    $total_pages = $total_students > 0 ? ceil($total_students / $limit) : 0;
 
-    // 3. **MODIFIED:** Fetch one page of students, with disqualified and locked students appearing first.
+    // 3. **FIX:** Fetch one page of students, with disqualified students first, and using the correct name column.
     $sql_students = "SELECT 
-                        s.user_id, s.name, s.sap_id, 
-                        sa.id as attempt_id, sa.submitted_at, sa.is_disqualified, sa.is_manually_locked
+                        u.id as user_id, 
+                        s.name as name, /* CORRECTED: Changed u.full_name to s.name */
+                        s.sap_id, 
+                        sa.id as attempt_id, 
+                        sa.submitted_at, 
+                        sa.is_disqualified, 
+                        sa.is_manually_locked
                     FROM students s
+                    JOIN users u ON s.user_id = u.id
                     JOIN quizzes q ON s.course_id = q.course_id AND s.graduation_year = q.graduation_year
                     LEFT JOIN student_attempts sa ON s.user_id = sa.student_id AND sa.quiz_id = q.id
                     WHERE q.id = ?
-                    ORDER BY sa.is_disqualified DESC, sa.is_manually_locked DESC, s.name ASC
+                    ORDER BY sa.is_disqualified DESC, sa.is_manually_locked DESC, s.name ASC /* CORRECTED: Changed u.full_name to s.name */
                     LIMIT ? OFFSET ?";
     $stmt_students = $pdo->prepare($sql_students);
     $stmt_students->bindValue(1, $quiz_id, PDO::PARAM_INT);
@@ -97,14 +102,15 @@ try {
         ];
     }
 
-    // 7. **MODIFIED:** Return the combined data package with pagination info
+    // 7. **MODIFIED:** Return the combined data package with full pagination info
     echo json_encode([
         'quiz_status' => $quiz_status,
         'students' => $monitoring_data,
         'pagination' => [
             'current_page' => $page,
             'total_pages' => $total_pages,
-            'total_students' => $total_students
+            'total_students' => $total_students,
+            'limit' => $limit
         ]
     ]);
 

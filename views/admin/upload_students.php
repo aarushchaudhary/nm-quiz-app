@@ -24,7 +24,7 @@
         <h3>Upload Excel File</h3>
         <p style="text-align:center; color: #555;">
             Upload an Excel file (.xlsx) with student data. The file must follow the specified format. 
-            The default password for all new users will be '<strong>Welcome123</strong>'.
+            The password field is optional. If left blank, the default password will be '<strong>Welcome123</strong>'.
         </p>
 
         <form action="/nmims_quiz_app/api/admin/upload_students.php" method="POST" enctype="multipart/form-data" class="upload-form">
@@ -35,7 +35,7 @@
             <button type="submit" class="button-red">Upload and Create Students</button>
             
             <p style="text-align:center; margin-top:15px; font-size: 0.9em;">
-                Need the format? <a href="/nmims_quiz_app/assets/templates/student_template.xlsx" download>Download Excel Template</a>
+                Need the format? <a href="/nmims_quiz_app/assets/templates/student_template_with_password.xlsx" download>Download Excel Template</a>
             </p>
         </form>
     </div>

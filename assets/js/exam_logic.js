@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         } else {
             // It's a regular question, render it based on its type
             if (q.question_type_id == 3) {
-                ui.optionsGrid.innerHTML = `<textarea id="descriptive-answer" class="descriptive-answer-area" placeholder="Type your answer here..." spellcheck="false"></textarea>`;
+                ui.optionsGrid.innerHTML = `<textarea id="descriptive-answer" class="descriptive-answer-area" placeholder="Type your answer here..." spellcheck="false" data-gramm="false"></textarea>`;
             } else {
                 const inputType = q.question_type_id == 1 ? 'radio' : 'checkbox';
                 q.options.forEach(opt => {
@@ -228,10 +228,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         if (proctoringState.examFinished) return;
         proctoringState.warningCount++;
         logViolation(description);
-        if (proctoringState.warningCount >= 2) {
+        if (proctoringState.warningCount >= 3) {
             finishExam(true);
         } else {
-            ui.warningCountSpan.textContent = `${proctoringState.warningCount} of 2`;
+            ui.warningCountSpan.textContent = `${proctoringState.warningCount} of 3`;
             ui.warningOverlay.style.display = 'flex';
             setTimeout(() => { ui.warningOverlay.style.display = 'none'; }, 4000);
         }
@@ -250,20 +250,43 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
 
+    // --- MODIFICATION START ---
+    // Expanded this function to block more Ctrl-key combinations like Ctrl+Tab.
     function handleKeyDown(event) {
         if (proctoringState.examFinished) return;
-        if (event.metaKey || event.altKey) {
-            event.preventDefault();
-            triggerViolation(`Attempted to use a system command (Windows/Alt key). Warning #${proctoringState.warningCount + 1}.`);
-        }
+
         const key = event.key.toUpperCase();
+        const isFunctionKey = event.key.startsWith('F') && event.key.length > 1 && !isNaN(event.key.substring(1));
+
+        // Block Alt, Windows/Cmd, and all Function Keys (F1-F12)
+        if (event.altKey || event.metaKey || isFunctionKey) {
+            event.preventDefault();
+            let keyName = "a system key";
+            if (event.altKey) keyName = "the Alt key";
+            if (event.metaKey) keyName = "the Windows/Cmd key";
+            if (isFunctionKey) keyName = `the ${event.key} key`;
+            
+            triggerViolation(`Attempted to use ${keyName}. Warning #${proctoringState.warningCount + 1}.`);
+            return; // Stop processing to prevent multiple violation triggers
+        }
+
+        // Block other specific ctrl-based shortcuts
         const ctrl = event.ctrlKey;
         const shift = event.shiftKey;
-        if (key === 'F12' || (ctrl && shift && key === 'I') || (ctrl && shift && key === 'J') || (ctrl && key === 'U') || (ctrl && key === 'R')) {
+
+        // Expanded list of forbidden Ctrl combinations
+        if (
+            (ctrl && key === 'TAB') ||                                          // Block switching tabs
+            (ctrl && shift && (key === 'I' || key === 'J' || key === 'C')) ||   // Block Dev tools
+            (ctrl && (key === 'U' || key === 'R' || key === 'T' || key === 'N' || key === 'W' || key === 'P' || key === 'S')) // Block View Source, Reload, New Tab/Window, Close, Print, Save
+           ) {
+            
             event.preventDefault();
-            triggerViolation(`Attempted to use a restricted shortcut (${event.key}). Warning #${proctoringState.warningCount + 1}.`);
+            triggerViolation(`Attempted to use a restricted shortcut (Ctrl+${event.key}). Warning #${proctoringState.warningCount + 1}.`);
         }
     }
+    // --- MODIFICATION END ---
+
 
     // --- Event Listeners ---
     ui.nextBtn.addEventListener('click', async () => {

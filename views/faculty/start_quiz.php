@@ -82,11 +82,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const currentStatusText = document.getElementById('current-status-text');
     const messageArea = document.getElementById('message-area');
     let currentPage = 1;
+    let currentLimit = 10; // New: Added currentLimit
 
-    async function fetchMonitoringData(page = 1) {
+    async function fetchMonitoringData(page = 1, limit = 10) { // Modified: Added limit parameter
         currentPage = page;
+        currentLimit = limit; // New: Update currentLimit
         try {
-            const response = await fetch(`/nmims_quiz_app/api/faculty/get_live_monitoring_data.php?id=${quizId}&page=${page}`);
+            // Modified: Added limit to the fetch URL
+            const response = await fetch(`/nmims_quiz_app/api/faculty/get_live_monitoring_data.php?id=${quizId}&page=${page}&limit=${limit}`);
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'Failed to fetch data');
             
@@ -128,25 +131,44 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // **MODIFIED:** Function to render the full pagination controls with dropdown
     function renderPagination(pagination) {
         paginationControlsDiv.innerHTML = '';
-        if (pagination.total_pages <= 1) return;
+        if (pagination.total_students === 0) return;
 
         let linksHtml = '';
-        for (let i = 1; i <= pagination.total_pages; i++) {
-            linksHtml += `<a href="#" data-page="${i}" class="${i === pagination.current_page ? 'current-page' : ''}">${i}</a>`;
+        if (pagination.total_pages > 1) {
+            for (let i = 1; i <= pagination.total_pages; i++) {
+                linksHtml += `<a href="#" data-page="${i}" class="${i === pagination.current_page ? 'current-page' : ''}">${i}</a>`;
+            }
         }
 
+        const limitOptions = [10, 25, 50, 100];
+        let limitHtml = `<select id="limit-selector" class="input-field" style="width:auto; padding: 5px;">`;
+        limitOptions.forEach(opt => {
+            limitHtml += `<option value="${opt}" ${opt == pagination.limit ? 'selected' : ''}>${opt}</option>`;
+        });
+        limitHtml += `</select>`;
+
         paginationControlsDiv.innerHTML = `
-            <span class="page-info">Page ${pagination.current_page} of ${pagination.total_pages}</span>
+            <div class="items-per-page-form">
+                <label for="limit-selector">Items per page:</label>
+                ${limitHtml}
+            </div>
             <div class="page-links">${linksHtml}</div>
         `;
     }
 
+    // **MODIFIED:** Event listener now handles both page links and the dropdown
+    paginationControlsDiv.addEventListener('change', function(e) {
+        if (e.target.id === 'limit-selector') {
+            fetchMonitoringData(1, parseInt(e.target.value)); // Go to page 1 with new limit
+        }
+    });
     paginationControlsDiv.addEventListener('click', function(e) {
         if (e.target.tagName === 'A' && e.target.dataset.page) {
             e.preventDefault();
-            fetchMonitoringData(parseInt(e.target.dataset.page));
+            fetchMonitoringData(parseInt(e.target.dataset.page), currentLimit);
         }
     });
 
@@ -171,10 +193,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 const result = await response.json();
                 if (!result.success) throw new Error(result.error);
-                fetchMonitoringData(currentPage);
+                fetchMonitoringData(currentPage, currentLimit); // Modified: pass currentLimit
             } catch (error) {
                 alert(`Action failed: ${error.message}`);
-                fetchMonitoringData(currentPage);
+                fetchMonitoringData(currentPage, currentLimit); // Modified: pass currentLimit
             }
         }
     });
@@ -223,8 +245,9 @@ document.addEventListener('DOMContentLoaded', function() {
         controlButtonsDiv.innerHTML = buttonsHtml;
     }
 
-    setInterval(() => fetchMonitoringData(currentPage), 5000);
-    fetchMonitoringData(1); // Initial fetch for the first page
+    // Modified: Pass currentLimit to setInterval and the initial fetch
+    setInterval(() => fetchMonitoringData(currentPage, currentLimit), 5000);
+    fetchMonitoringData(1, 10); // Initial fetch for page 1 with a limit of 10
 });
 </script>
 
