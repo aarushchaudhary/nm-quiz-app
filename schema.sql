@@ -43,7 +43,6 @@ CREATE TABLE `exam_statuses` (
 -- ================================
 -- 3. Core User & Profile Tables
 -- ================================
--- MODIFIED: Added active_session_id and is_active columns
 CREATE TABLE `users` (
   `id`                INT AUTO_INCREMENT PRIMARY KEY,
   `username`          VARCHAR(50)  NOT NULL UNIQUE,
@@ -68,7 +67,6 @@ CREATE TABLE `students` (
   FOREIGN KEY (`course_id`) REFERENCES `courses`(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- MODIFIED: Changed 'department' to 'school_id'
 CREATE TABLE `faculties` (
   `user_id`    INT          PRIMARY KEY,
   `name`       VARCHAR(100) NOT NULL,
@@ -92,7 +90,6 @@ CREATE TABLE `admins` (
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- NEW TABLE: Added 'heads' for program chairs/directors
 CREATE TABLE `heads` (
   `id`      INT AUTO_INCREMENT PRIMARY KEY,
   `user_id` INT NOT NULL UNIQUE,
@@ -102,15 +99,38 @@ CREATE TABLE `heads` (
 
 
 -- ================================
+-- 3.5. Specializations
+-- ================================
+-- MODIFIED: Added school_id and foreign key constraint
+CREATE TABLE `specializations` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `name` VARCHAR(255) NOT NULL,
+    `description` TEXT,
+    `school_id` INT NOT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (`school_id`) REFERENCES `schools`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+CREATE TABLE `student_specializations` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `student_id` INT NOT NULL,
+    `specialization_id` INT NOT NULL,
+    FOREIGN KEY (`student_id`) REFERENCES `users`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`specialization_id`) REFERENCES `specializations`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+
+-- ================================
 -- 4. Exams & Questions
 -- ================================
--- MODIFIED: Added graduation_year for targeted quizzes
 CREATE TABLE `quizzes` (
   `id`                         INT AUTO_INCREMENT PRIMARY KEY,
   `title`                      VARCHAR(150) NOT NULL,
   `faculty_id`                 INT          NOT NULL,
   `course_id`                  INT          NOT NULL,
   `graduation_year`            YEAR         DEFAULT NULL,
+  `specialization_id`          INT          DEFAULT NULL,
   `sap_id_range_start`         BIGINT       NULL DEFAULT NULL,
   `sap_id_range_end`           BIGINT       NULL DEFAULT NULL,
   `show_results_immediately`   BOOLEAN      NOT NULL DEFAULT TRUE,
@@ -125,7 +145,8 @@ CREATE TABLE `quizzes` (
   `updated_at`                 TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (`faculty_id`) REFERENCES `faculties`(`user_id`),
   FOREIGN KEY (`course_id`)  REFERENCES `courses`(`id`),
-  FOREIGN KEY (`status_id`)  REFERENCES `exam_statuses`(`id`)
+  FOREIGN KEY (`status_id`)  REFERENCES `exam_statuses`(`id`),
+  FOREIGN KEY (`specialization_id`) REFERENCES `specializations`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE `questions` (
@@ -154,7 +175,6 @@ CREATE TABLE `options` (
 -- ================================
 -- 5. Student Attempts & Answers
 -- ================================
--- NEW TABLE: Added 'quiz_lobby' to track students before they start an exam
 CREATE TABLE `quiz_lobby` (
   `id`         INT AUTO_INCREMENT PRIMARY KEY,
   `quiz_id`    INT NOT NULL,
@@ -164,7 +184,6 @@ CREATE TABLE `quiz_lobby` (
   FOREIGN KEY (`student_id`) REFERENCES `users`(`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- MODIFIED: Added columns for proctoring and attempt state management
 CREATE TABLE `student_attempts` (
   `id`                   INT AUTO_INCREMENT PRIMARY KEY,
   `quiz_id`              INT          NOT NULL,
@@ -252,3 +271,4 @@ INSERT INTO `schools` (`id`, `name`) VALUES
 (3, 'SOL'),
 (4, 'SOC'),
 (5, 'SBM');
+

@@ -50,10 +50,24 @@
                 (es.name IN ('Lobby Open', 'In Progress'))
               )";
       
-      // NEW: Add specialization filtering logic
+      // Build the execution parameters array
+      $params = [
+          ':student_user_id' => $student_user_id,
+          ':course_id' => $student_course_id,
+          ':graduation_year' => $student_grad_year,
+          ':sap_id' => $student_sap_id
+      ];
+      
+      // NEW: Add specialization filtering logic using named placeholders
       $specialization_clause = "AND (q.specialization_id IS NULL";
       if (!empty($student_specializations)) {
-          $in_clause = implode(',', array_fill(0, count($student_specializations), '?'));
+          $spec_placeholders = [];
+          foreach ($student_specializations as $index => $spec_id) {
+              $placeholder = ":spec" . $index;
+              $spec_placeholders[] = $placeholder;
+              $params[$placeholder] = $spec_id;
+          }
+          $in_clause = implode(',', $spec_placeholders);
           $specialization_clause .= " OR q.specialization_id IN ($in_clause)";
       }
       $specialization_clause .= ")";
@@ -63,20 +77,8 @@
       
       $stmt_quizzes = $pdo->prepare($sql);
       
-      // Build the execution parameters array
-      $params = [
-          ':student_user_id' => $student_user_id,
-          ':course_id' => $student_course_id,
-          ':graduation_year' => $student_grad_year,
-          ':sap_id' => $student_sap_id
-      ];
-      
-      // Bind specialization IDs if they exist
-      if (!empty($student_specializations)) {
-          $stmt_quizzes->execute(array_merge(array_values($params), $student_specializations));
-      } else {
-          $stmt_quizzes->execute($params);
-      }
+      // Execute with the combined parameters
+      $stmt_quizzes->execute($params);
       
       $quizzes = $stmt_quizzes->fetchAll();
   }
