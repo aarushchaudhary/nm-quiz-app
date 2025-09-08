@@ -10,10 +10,21 @@
       exit();
   }
 
-  // Fetch initial data for the form's dropdown menus
-  $roles = $pdo->query("SELECT id, name FROM roles WHERE name != 'admin'")->fetchAll();
+  // --- Fetch initial data for the form's dropdown menus ---
+  // FIXED: Changed 'role_name' to 'name' to match your database schema
+  $roles = $pdo->query("SELECT id, name FROM roles WHERE name NOT IN ('Admin', 'Super Admin')")->fetchAll();
   $schools = $pdo->query("SELECT id, name FROM schools ORDER BY name ASC")->fetchAll();
+  $specializations = $pdo->query("SELECT id, name FROM specializations ORDER BY name ASC")->fetchAll();
 ?>
+
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+  .select2-container .select2-selection--multiple { 
+      min-height: 42px; 
+      border: 1px solid #ced4da; 
+      padding-top: 5px;
+  }
+</style>
 
 <div class="form-container" style="max-width: 800px;">
     <h2>Create New User Account</h2>
@@ -21,37 +32,38 @@
         
         <div class="form-group">
             <label for="role_id">User Role</label>
-            <select id="role_id" name="role_id" class="input-field" required>
+            <select id="role_id" name="role_id" required>
                 <option value="" disabled selected>-- Select a Role --</option>
                 <?php foreach ($roles as $role): ?>
+                
                 <option value="<?php echo $role['id']; ?>"><?php echo htmlspecialchars(ucfirst($role['name'])); ?></option>
+                
                 <?php endforeach; ?>
             </select>
         </div>
 
         <div class="form-row">
-            <div class="form-group"><label for="full_name">Full Name</label><input type="text" id="full_name" name="full_name" class="input-field" required></div>
-            <div class="form-group"><label for="username">Username</label><input type="text" id="username" name="username" class="input-field" required></div>
+            <div class="form-group"><label for="full_name">Full Name</label><input type="text" id="full_name" name="full_name" required></div>
+            <div class="form-group"><label for="username">Username</label><input type="text" id="username" name="username" required></div>
         </div>
         <div class="form-group">
             <label for="password">Password</label>
-            <input type="password" id="password" name="password" class="input-field" required>
+            <input type="password" id="password" name="password" required>
         </div>
         
         <hr>
 
         <div id="role-specific-fields">
-
             <div class="student-fields" style="display:none;">
                 <h4>Student Details</h4>
                 <div class="form-row">
-                    <div class="form-group"><label>SAP ID</label><input type="text" name="sap_id" class="input-field"></div>
-                    <div class="form-group"><label>Roll No.</label><input type="text" name="roll_no" class="input-field"></div>
+                    <div class="form-group"><label>SAP ID</label><input type="text" name="sap_id"></div>
+                    <div class="form-group"><label>Roll No.</label><input type="text" name="roll_no"></div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label for="student_school_id">School</label>
-                        <select id="student_school_id" name="school_id" class="input-field">
+                        <select id="student_school_id" name="school_id">
                             <option value="">-- Select a School --</option>
                             <?php foreach($schools as $school): ?>
                             <option value="<?php echo $school['id']; ?>"><?php echo htmlspecialchars($school['name']); ?></option>
@@ -60,29 +72,36 @@
                     </div>
                     <div class="form-group">
                         <label for="course_id">Course</label>
-                        <select id="course_id" name="course_id" class="input-field" disabled><option value="">-- Select School First --</option></select>
+                        <select id="course_id" name="course_id" disabled><option value="">-- Select School First --</option></select>
                     </div>
                 </div>
-                <div class="form-row">
+                 <div class="form-row">
                     <div class="form-group">
                         <label for="grad_year">Graduation Year</label>
-                        <input type="number" id="grad_year" name="graduation_year" class="input-field" placeholder="e.g., 2026">
+                        <input type="number" id="grad_year" name="graduation_year" placeholder="e.g., <?php echo date('Y') + 4; ?>">
                     </div>
                      <div class="form-group">
                         <label for="batch">Batch</label>
-                        <input type="text" id="batch" name="batch" class="input-field" placeholder="e.g., 2024-2028">
+                        <input type="text" id="batch" name="batch" placeholder="e.g., 2024-2028">
                     </div>
+                </div>
+                <div class="form-group">
+                    <label for="specializations">Assign Specializations (Optional)</label>
+                    <select multiple id="specializations" name="specialization_ids[]" style="width: 100%;">
+                        <?php foreach ($specializations as $spec): ?>
+                            <option value="<?php echo $spec['id']; ?>"><?php echo htmlspecialchars($spec['name']); ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
             </div>
 
             <div class="staff-fields" style="display:none;">
                 <h4>Staff Details</h4>
                 <div class="form-row">
-                    <div class="form-group" id="staff-sap-id-group"><label>SAP ID</label><input type="text" name="staff_sap_id" class="input-field"></div>
-                    <div class="form-group" id="staff-school-group"><label>School / Department</label><select id="staff_school_id" name="staff_school_id" class="input-field"><option value="">-- Select a School / Department --</option><?php foreach($schools as $school): ?><option value="<?php echo $school['id']; ?>"><?php echo htmlspecialchars($school['name']); ?></option><?php endforeach; ?></select></div>
+                    <div class="form-group" id="staff-sap-id-group"><label>SAP ID</label><input type="text" name="staff_sap_id"></div>
+                    <div class="form-group" id="staff-school-group"><label>School / Department</label><select id="staff_school_id" name="staff_school_id"><option value="">-- Select --</option><?php foreach($schools as $school): ?><option value="<?php echo $school['id']; ?>"><?php echo htmlspecialchars($school['name']); ?></option><?php endforeach; ?></select></div>
                 </div>
             </div>
-
         </div>
 
         <div class="form-group" style="text-align: center; margin-top: 30px;">
@@ -91,40 +110,34 @@
     </form>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    $('#specializations').select2({
+        placeholder: "Select one or more specializations",
+        allowClear: true
+    });
+
     const roleSelect = document.getElementById('role_id');
     const studentFields = document.querySelector('.student-fields');
     const staffFields = document.querySelector('.staff-fields');
-    const staffSapIdGroup = document.getElementById('staff-sap-id-group');
-    const staffSchoolGroup = document.getElementById('staff-school-group');
     
-    // **FIX:** The JavaScript logic is now more specific for each role.
     roleSelect.addEventListener('change', function() {
-        const roleId = this.value;
-        // Hide all optional sections first
+        const roleText = this.options[this.selectedIndex].text.toLowerCase();
+        
         studentFields.style.display = 'none';
         staffFields.style.display = 'none';
-        staffSapIdGroup.style.display = 'none';
-        staffSchoolGroup.style.display = 'none';
 
-        if (roleId === '4') { // Student
+        if (roleText === 'student') {
             studentFields.style.display = 'block';
-        } else if (roleId === '2') { // Faculty
+        } else if (roleText === 'faculty' || roleText.includes('placement')) { // More robust check
             staffFields.style.display = 'block';
-            staffSapIdGroup.style.display = 'block';
-            staffSchoolGroup.style.display = 'block';
-        } else if (roleId === '3') { // Placement Officer
-            staffFields.style.display = 'block';
-            staffSapIdGroup.style.display = 'block';
         }
-        // For any other role (like Heads), no extra fields will be shown.
     });
 
-    // --- Cascading Dropdown Logic for Students (unchanged) ---
     const schoolSelect = document.getElementById('student_school_id');
     const courseSelect = document.getElementById('course_id');
-    const batchInput = document.getElementById('batch'); // Assuming text input
 
     schoolSelect.addEventListener('change', async function() {
         const schoolId = this.value;

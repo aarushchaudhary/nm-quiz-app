@@ -11,7 +11,7 @@
   }
   $user_id = filter_var($_GET['id'], FILTER_VALIDATE_INT);
 
-  // --- Fetch all user data ---
+  // --- Fetch all user data (FIXED: Removed u.email from the query) ---
   $sql = "SELECT u.id, u.username, u.role_id, s.*, f.*, p.*
           FROM users u
           LEFT JOIN students s ON u.id = s.user_id
@@ -31,11 +31,29 @@
   $full_name = $user['name'] ?? ''; // This will get the name from students, faculties, or placecom
 
   $courses = $pdo->query("SELECT id, name FROM courses")->fetchAll();
+  
+  // --- Fetch specializations for the form ---
+  $specializations = [];
+  if ($user['role_id'] == 4) {
+      $specializations = $pdo->query("SELECT id, name FROM specializations ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
+  }
 ?>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+  .select2-container .select2-selection--multiple { 
+      min-height: 42px; 
+      border: 1px solid #ced4da; 
+  }
+  .select2-container--default .select2-selection--multiple .select2-selection__choice {
+      padding: 5px 10px;
+      margin-top: 5px;
+  }
+</style>
 
 <div class="form-container" style="max-width: 800px;">
     <h2>Edit User: <?php echo htmlspecialchars($full_name); ?></h2>
-    <form action="/nmims_quiz_app/api/admin/update_user.php" method="POST">
+    
+    <form id="edit-user-form" action="/nmims_quiz_app/api/admin/update_user.php" method="POST">
         <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
         <input type="hidden" name="role_id" value="<?php echo $user['role_id']; ?>">
         
@@ -49,7 +67,6 @@
         </div>
         <hr>
 
-        <!-- Student Fields -->
         <?php if ($user['role_id'] == 4): ?>
         <div class="student-fields">
             <h4>Student Details</h4>
@@ -59,13 +76,19 @@
             </div>
             <div class="form-row">
                 <div class="form-group"><label>Course</label><select name="course_id"><?php foreach($courses as $c) echo "<option value='{$c['id']}' ".($user['course_id']==$c['id']?'selected':'').">{$c['name']}</option>"; ?></select></div>
-                <div class="form-group"><label>Batch</label><input type="text" name="batch" value="<?php echo htmlspecialchars($user['batch']); ?>"></div>
                 <div class="form-group"><label>Graduation Year</label><input type="number" name="graduation_year" value="<?php echo htmlspecialchars($user['graduation_year']); ?>"></div>
+            </div>
+            <div class="form-group">
+                <label for="specializations">Assign Specializations</label>
+                <select multiple class="form-control" id="specializations" name="specialization_ids[]">
+                    <?php foreach ($specializations as $spec): ?>
+                        <option value="<?php echo $spec['id']; ?>"><?php echo htmlspecialchars($spec['name']); ?></option>
+                    <?php endforeach; ?>
+                </select>
             </div>
         </div>
         <?php endif; ?>
 
-        <!-- Faculty/Placecom Fields -->
         <?php if ($user['role_id'] == 2 || $user['role_id'] == 3): ?>
         <div class="faculty-fields">
             <h4>Details</h4>
@@ -81,6 +104,79 @@
         </div>
     </form>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const specializationsSelect = document.getElementById('specializations');
+    if (specializationsSelect) {
+        $('#specializations').select2({
+            placeholder: "Select one or more specializations",
+            allowClear: true
+        });
+
+        const userId = <?php echo $user_id; ?>;
+
+        // Fetch and pre-select the student's current specializations
+        fetch(`/nmims_quiz_app/api/admin/get_user_specializations.php?user_id=${userId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.specializations) {
+                    const specializationIds = data.specializations.map(spec => spec.specialization_id);
+                    $('#specializations').val(specializationIds).trigger('change');
+                }
+            })
+            .catch(error => console.error('Error fetching user specializations:', error));
+    }
+
+    // Handle form submission to include specialization data
+    document.getElementById('edit-user-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        // First, submit the main user data
+        const formData = new FormData(this);
+        const response = await fetch(this.action, {
+            method: 'POST',
+            body: formData
+        });
+        
+        // Check if the response is valid JSON before parsing
+        const resultText = await response.text();
+        let result;
+        try {
+            result = JSON.parse(resultText);
+        } catch (error) {
+            console.error("Failed to parse server response:", resultText);
+            alert("An unexpected error occurred. Please check the console for details.");
+            return;
+        }
+
+        // If main user data saved successfully and it's a student, save specializations
+        if (result.success && specializationsSelect) {
+            const selectedSpecializations = $('#specializations').val();
+            
+            await fetch('/nmims_quiz_app/api/admin/assign_specialization.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    student_id: <?php echo $user_id; ?>,
+                    specialization_ids: selectedSpecializations
+                })
+            });
+        }
+        
+        // Provide feedback to the admin
+        if(result.success) {
+            alert('User details saved successfully!');
+            window.location.href = 'user_management.php'; // Redirect back to the list
+        } else {
+            alert('Error saving user details: ' + (result.message || 'Unknown error'));
+        }
+    });
+});
+</script>
 
 <?php
   require_once '../../assets/templates/footer.php';

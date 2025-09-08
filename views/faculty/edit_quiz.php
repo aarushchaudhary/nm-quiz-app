@@ -37,13 +37,14 @@
   ");
   $students = $students_stmt->fetchAll(PDO::FETCH_ASSOC);
 
+  // --- NEW: Fetch specializations ---
+  $specializations = $pdo->query("SELECT id, name FROM specializations ORDER BY name ASC")->fetchAll();
+
   function format_datetime_for_input($datetime) {
       return date('Y-m-d\TH:i', strtotime($datetime));
   }
 
-  // ✅ NEW: Determine if the 'show_results_immediately' checkbox should be checked
   $is_results_immediate_checked = $quiz['show_results_immediately'] ? 'checked' : '';
-
 ?>
 
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -87,6 +88,18 @@
                 <option value="">-- Loading... --</option>
             </select>
         </div>
+    </div>
+    
+    <div class="form-group">
+        <label for="specialization_id">Specialization (Optional)</label>
+        <select id="specialization_id" name="specialization_id">
+            <option value="">-- General Quiz for all Specializations --</option>
+            <?php foreach ($specializations as $spec): ?>
+            <option value="<?php echo $spec['id']; ?>" <?php echo ($quiz['specialization_id'] == $spec['id']) ? 'selected' : ''; ?>>
+                <?php echo htmlspecialchars($spec['name']); ?>
+            </option>
+            <?php endforeach; ?>
+        </select>
     </div>
 
     <div class="form-row">

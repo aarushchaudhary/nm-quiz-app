@@ -24,8 +24,15 @@
   $student_sap_id = $student_info['sap_id'] ?? null;
   $quizzes = [];
 
-  // --- Fetch Available Quizzes with SAP ID range check ---
+  // --- NEW: Fetch student's specializations ---
+  $student_specializations = [];
+  $stmt_spec = $pdo->prepare("SELECT specialization_id FROM student_specializations WHERE student_id = ?");
+  $stmt_spec->execute([$student_user_id]);
+  $student_specializations = $stmt_spec->fetchAll(PDO::FETCH_COLUMN);
+
+  // --- MODIFIED: Fetch Available Quizzes with SAP ID and Specialization check ---
   if ($student_course_id && $student_grad_year) {
+      // Base SQL query
       $sql = "SELECT 
                 q.id, q.title, q.start_time, es.name as status_name
               FROM quizzes q
@@ -41,17 +48,36 @@
                 (NOW() BETWEEN q.start_time AND q.end_time AND es.name != 'Completed')
                 OR
                 (es.name IN ('Lobby Open', 'In Progress'))
-              )
-              ORDER BY q.start_time ASC";
+              )";
+      
+      // NEW: Add specialization filtering logic
+      $specialization_clause = "AND (q.specialization_id IS NULL";
+      if (!empty($student_specializations)) {
+          $in_clause = implode(',', array_fill(0, count($student_specializations), '?'));
+          $specialization_clause .= " OR q.specialization_id IN ($in_clause)";
+      }
+      $specialization_clause .= ")";
+      
+      $sql .= " " . $specialization_clause;
+      $sql .= " ORDER BY q.start_time ASC";
       
       $stmt_quizzes = $pdo->prepare($sql);
-      // **FIX:** Added the missing :student_user_id and :sap_id parameters.
-      $stmt_quizzes->execute([
+      
+      // Build the execution parameters array
+      $params = [
           ':student_user_id' => $student_user_id,
           ':course_id' => $student_course_id,
           ':graduation_year' => $student_grad_year,
           ':sap_id' => $student_sap_id
-      ]);
+      ];
+      
+      // Bind specialization IDs if they exist
+      if (!empty($student_specializations)) {
+          $stmt_quizzes->execute(array_merge(array_values($params), $student_specializations));
+      } else {
+          $stmt_quizzes->execute($params);
+      }
+      
       $quizzes = $stmt_quizzes->fetchAll();
   }
 ?>

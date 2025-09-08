@@ -1,6 +1,6 @@
 <?php
   $pageTitle = 'Create New Quiz';
-  $customCSS = 'manage.css'; // This line loads your stylesheet
+  $customCSS = 'manage.css'; 
   require_once '../../assets/templates/header.php';
   require_once '../../config/database.php';
 
@@ -20,6 +20,9 @@
     ORDER BY s.name ASC
   ");
   $students = $students_stmt->fetchAll(PDO::FETCH_ASSOC);
+
+  // --- NEW: Fetch specializations for the dropdown ---
+  $specializations = $pdo->query("SELECT id, name FROM specializations ORDER BY name ASC")->fetchAll();
 ?>
 
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -61,6 +64,17 @@
             </select>
         </div>
     </div>
+    
+    <div class="form-group">
+        <label for="specialization_id">Specialization (Optional)</label>
+        <select id="specialization_id" name="specialization_id">
+            <option value="">-- General Quiz for all Specializations --</option>
+            <?php foreach ($specializations as $spec): ?>
+            <option value="<?php echo $spec['id']; ?>"><?php echo htmlspecialchars($spec['name']); ?></option>
+            <?php endforeach; ?>
+        </select>
+    </div>
+
 
     <div class="form-row">
       <div class="form-group">
