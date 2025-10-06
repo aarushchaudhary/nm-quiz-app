@@ -159,6 +159,11 @@ document.addEventListener('DOMContentLoaded', async function() {
                 body: JSON.stringify(bodyPayload)
             });
 
+            // Notify Electron that exam is submitted
+            if (typeof window.electronAPI !== 'undefined') {
+                window.electronAPI.examSubmitted();
+            }
+
             if (isDisqualified) {
                 window.location.href = `disqualified.php?attempt_id=${examState.attemptId}`;
             } else {
