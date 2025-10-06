@@ -27,7 +27,7 @@ function createMainWindow() {
   });
 
   mainWindow.loadURL(QUIZ_APP_URL);
-  
+
   // Trap focus to prevent Alt+Tab or using the Windows key.
   mainWindow.on('blur', () => {
     if (!isClosable && !isDialogShowing) {
@@ -103,6 +103,37 @@ ipcMain.on('mouse-leave-button', () => {
     exitButtonWindow.setIgnoreMouseEvents(true, { forward: true }); // Make window click-through again
 });
 
+// --- NEW: IPC HANDLER FOR ALERT DIALOG ---
+ipcMain.on('show-alert', (event, message) => {
+    isDialogShowing = true;
+    dialog.showMessageBox(mainWindow, {
+        type: 'info',
+        title: 'Alert',
+        message: message,
+        buttons: ['OK']
+    }).then(() => {
+        isDialogShowing = false;
+        mainWindow.focus();
+    });
+});
+
+// --- UPDATED: IPC HANDLER FOR CONFIRMATION DIALOG ---
+ipcMain.handle('show-confirm', async (event, message) => {
+    isDialogShowing = true;
+    const result = await dialog.showMessageBox(mainWindow, { // <-- FIX: Added mainWindow
+        type: 'question',
+        title: 'Confirm Action',
+        message: message,
+        buttons: ['OK', 'Cancel'],
+        defaultId: 0,
+        cancelId: 1,
+    });
+    isDialogShowing = false;
+    mainWindow.focus();
+    return result.response === 0; // Return true if OK was clicked, false otherwise
+});
+
+
 // --- OTHER IPC HANDLERS ---
 ipcMain.on('exam-submitted', () => {
   isClosable = true;
@@ -111,7 +142,7 @@ ipcMain.on('exam-submitted', () => {
 
 ipcMain.on('request-quit', () => {
     isDialogShowing = true;
-    dialog.showMessageBox({
+    dialog.showMessageBox(mainWindow, { // <-- FIX: Added mainWindow
         type: 'question',
         title: 'Confirm Exit',
         message: 'Are you sure you want to exit the application?',
@@ -145,4 +176,3 @@ app.on('window-all-closed', () => {
     app.quit();
   }
 });
-

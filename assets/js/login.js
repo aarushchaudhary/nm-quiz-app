@@ -20,8 +20,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (result.status === 'success') {
                 window.location.href = '/nmims_quiz_app/index.php';
             } else if (result.status === 'conflict') {
-                // Show a confirmation dialog
-                if (confirm(result.message)) {
+                // Show a confirmation dialog using the Electron API
+                if (window.electronAPI && await window.electronAPI.showConfirm(result.message)) {
                     // If user clicks OK, send a "force login" request
                     forceLogin(data);
                 }

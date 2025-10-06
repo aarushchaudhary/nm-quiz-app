@@ -29,6 +29,25 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (!response.ok || data.error) {
                 throw new Error(data.error || 'Failed to load exam data.');
             }
+            
+            if (data.attempted) {
+                if (window.electronAPI) {
+                    window.electronAPI.showAlert('You have already submitted this exam.');
+                } else {
+                    alert('You have already submitted this exam.');
+                }
+                window.location.href = 'dashboard.php';
+                return;
+            } else if (data.disqualified) {
+                if (window.electronAPI) {
+                    window.electronAPI.showAlert('You have been disqualified from this exam.');
+                } else {
+                    alert('You have been disqualified from this exam.');
+                }
+                window.location.href = 'dashboard.php';
+                return;
+            }
+            
             examState.questions = data.questions;
             examState.attemptId = data.attempt_id;
 
