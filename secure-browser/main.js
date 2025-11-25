@@ -1,6 +1,7 @@
 // main.js
 // Modules to control application life and create native browser window
-const { app, BrowserWindow, session, net } = require('electron');
+const { app, BrowserWindow, session, globalShortcut } = require('electron');
+const { exec } = require('child_process');
 const path = require('path');
 const url = require('url');
 
@@ -8,154 +9,159 @@ const url = require('url');
 // IMPORTANT: Replace this with the actual base URL of your quiz application
 const BASE_URL = 'http://localhost/nmims_quiz_app/';
 
-// Define allowed URL patterns (URLs students ARE allowed to navigate to)
-// This needs to be carefully configured based on your app's structure.
+// Define allowed URL patterns
 const ALLOWED_URL_PATTERNS = [
   BASE_URL + 'login.php',
   BASE_URL + 'index.php',
-  BASE_URL + 'views/student/', // Allow anything under /views/student/
-  BASE_URL + 'api/student/',   // Allow student API calls
-  BASE_URL + 'assets/',        // Allow assets (CSS, JS, images)
-  BASE_URL + 'lib/',           // Allow libraries if needed by frontend
+  BASE_URL + 'views/student/',
+  BASE_URL + 'api/student/',
+  BASE_URL + 'assets/',
+  BASE_URL + 'lib/',
   BASE_URL + 'logout.php'
 ];
-// --- End Configuration ---
 
 function isUrlAllowed(requestedUrl) {
-  // Always allow data URLs (used sometimes for images/resources)
-  if (requestedUrl.startsWith('data:')) {
-    return true;
-  }
-  // Check against each pattern
+  if (requestedUrl.startsWith('data:')) return true;
   return ALLOWED_URL_PATTERNS.some(pattern => requestedUrl.startsWith(pattern));
 }
 
-
-// Disable hardware acceleration & other potentially heavy features
-// Do this before the app is ready
+// Optimization Switches
 app.disableHardwareAcceleration();
-app.commandLine.appendSwitch('disable-gpu');
-app.commandLine.appendSwitch('disable-software-rasterizer');
-app.commandLine.appendSwitch('disable-gpu-compositing');
-app.commandLine.appendSwitch('disable-gpu-rasterization');
-app.commandLine.appendSwitch('disable-gpu-sandbox');
-app.commandLine.appendSwitch('disable-accelerated-2d-canvas');
-app.commandLine.appendSwitch('disable-breakpad'); // Disable crash reporting
-// Might help reduce CPU usage slightly by preventing background throttling
 app.commandLine.appendSwitch('disable-renderer-backgrounding');
 
+// --- 1. Background Process Killer ---
+function startBackgroundCleaner() {
+  // Expanded blacklist of process names to terminate
+  const blacklist = [
+    // Browsers
+    'chrome.exe', 'firefox.exe', 'msedge.exe', 'brave.exe', 'opera.exe', 'iexplore.exe',
+    // Communication
+    'discord.exe', 'skype.exe', 'teams.exe', 'whatsapp.exe', 'slack.exe', 'zoom.exe', 'telegram.exe',
+    // Tools & Utilities
+    'calc.exe', 'calculator.exe', 'snippingtool.exe', 'SnippingTool.exe', 'ScreenClippingHost.exe', 
+    'notepad.exe', 'wordpad.exe', 'winword.exe', 'excel.exe', 'powerpnt.exe', 'onenote.exe', 'onenoteim.exe',
+    'stickynot.exe', 'Microsoft.Notes.exe',
+    // System Monitors (Task Manager, etc)
+    'Taskmgr.exe', 'procmon.exe', 'perfmon.exe', 'resmon.exe'
+  ];
+
+  // Run this check every 3 seconds
+  setInterval(() => {
+    blacklist.forEach(processName => {
+      // /F = Force, /IM = Image Name, /T = Tree (child processes)
+      // We execute this blindly; if the app isn't running, it just errors silently (which we ignore)
+      exec(`taskkill /F /IM ${processName} /T`, (error) => {
+        if (!error) console.log(`[Security Enforcement] Killed restricted app: ${processName}`);
+      });
+    });
+  }, 3000); 
+}
 
 function createWindow () {
-  // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
-    fullscreen: true, // Start in fullscreen for lockdown effect
-    kiosk: true,      // Kiosk mode prevents exiting fullscreen easily
-    alwaysOnTop: true, // Keep the window on top
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.js'), // If you need preload script later
-      contextIsolation: true, // Recommended security practice
-      nodeIntegration: false, // Recommended security practice
-      devTools: !app.isPackaged, // Disable DevTools in packaged app
-      webSecurity: true,
-      allowRunningInsecureContent: false,
-      // Disable features not needed for a simple web view
-      plugins: false,
-      experimentalFeatures: false,
-    },
-    // Make the window less prominent/removable
-    frame: false, // Removes the window frame (title bar, etc.)
-    closable: false, // Prevent closing via standard controls (use kiosk/frame:false)
+    fullscreen: true,
+    kiosk: true,       // Kiosk mode
+    alwaysOnTop: true, // Keep on top
+    frame: false,      // No window frame
+    closable: false,   // Prevent closing
     resizable: false,
     movable: false,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      devTools: false, // Strict: Disable DevTools
+      webSecurity: true,
+      allowRunningInsecureContent: false,
+      plugins: false
+    }
   });
 
-  // Make the window truly fullscreen without window controls showing on hover (Windows/macOS)
-  mainWindow.setFullScreenable(false); // Prevent user from exiting fullscreen easily
-  mainWindow.setMenuBarVisibility(false); // Hide menu bar
+  mainWindow.setFullScreenable(false);
+  mainWindow.setMenuBarVisibility(false);
 
+  // --- 2. Strict Input Blocking Logic ---
+  mainWindow.webContents.on('before-input-event', (event, input) => {
+    if (input.type === 'keyDown') {
+      
+      // A. Block Escape Key
+      if (input.key === 'Escape') {
+        event.preventDefault();
+        console.log('Blocked Escape Key');
+        return;
+      }
 
-  // --- Navigation Control ---
-  const handleNavigation = (event, navigationUrl) => {
-    const parsedUrl = url.parse(navigationUrl);
+      // B. Block All Function Keys (F1 - F12)
+      if (input.key.startsWith('F') && input.key.length > 1) {
+        event.preventDefault();
+        console.log(`Blocked Function Key: ${input.key}`);
+        return;
+      }
 
-    console.log(`Attempting navigation to: ${navigationUrl}`); // Log navigation attempts
-
-    if (!isUrlAllowed(navigationUrl)) {
-      console.warn(`Blocked navigation to: ${navigationUrl}`); // Log blocked attempts
-      event.preventDefault(); // Prevent navigation if URL is not allowed
+      // C. Block Modifiers: Control, Alt, Windows (Meta)
+      // NOTE: We do NOT check input.shift here, so Shift is allowed.
+      if (input.control || input.alt || input.meta) {
+        event.preventDefault();
+        console.log(`Blocked Key Combo: ${input.key} + [Ctrl:${input.control} Alt:${input.alt} Win:${input.meta}]`);
+        return;
+      }
     }
-    // else: Allow navigation
+  });
+
+  // --- Navigation Blocking ---
+  const handleNavigation = (event, navigationUrl) => {
+    if (!isUrlAllowed(navigationUrl)) {
+      console.warn(`Blocked navigation: ${navigationUrl}`);
+      event.preventDefault();
+    }
   };
 
   mainWindow.webContents.on('will-navigate', handleNavigation);
-  mainWindow.webContents.on('new-window', (event, navigationUrl) => {
-    // Prevent opening new windows/tabs
-    console.warn(`Blocked opening new window for: ${navigationUrl}`);
-    event.preventDefault();
-  });
-  // --- End Navigation Control ---
+  mainWindow.webContents.on('new-window', (e) => e.preventDefault());
 
-
-  // Load the login page of your quiz app.
-  console.log(`Loading initial URL: ${BASE_URL + 'login.php'}`);
+  console.log(`Loading: ${BASE_URL + 'login.php'}`);
   mainWindow.loadURL(BASE_URL + 'login.php');
-
-  // Optional: Open the DevTools automatically if not packaged
-  // if (!app.isPackaged) {
-  //   mainWindow.webContents.openDevTools();
-  // }
 }
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
-  // Configure session to clear cache on start (optional, but good for exams)
-  session.defaultSession.clearCache().then(() => {
-    console.log('Cache cleared.');
+  session.defaultSession.clearCache();
+
+  // --- 3. Global Shortcut Blocking (System Level) ---
+  // Attempts to swallow system shortcuts so they don't trigger OS actions
+  const shortcuts = [
+    'Alt+Tab', 'Alt+Space', 'Ctrl+Esc', 'Alt+F4', 
+    'Ctrl+Shift+Esc', 'CommandOrControl+Tab', 
+    'CommandOrControl+Shift+I', 'CommandOrControl+R',
+    'Escape' // Try to register global Escape (may not work on all OSs, but worth trying)
+  ];
+
+  shortcuts.forEach(key => {
+    try {
+      globalShortcut.register(key, () => {
+        console.log(`System shortcut blocked: ${key}`);
+        return false;
+      });
+    } catch (e) {
+      // Some keys (like Escape alone) might fail to register globally on some OSs
+      console.log(`Could not register global block for ${key}`);
+    }
   });
 
-  // Intercept and potentially block resource requests (more granular control)
-  // This is an alternative/addition to 'will-navigate'
-  // session.defaultSession.webRequest.onBeforeRequest({ urls: ['*://*/*'] }, (details, callback) => {
-  //   if (isUrlAllowed(details.url)) {
-  //     callback({ cancel: false }); // Allow
-  //   } else {
-  //     console.warn(`Blocked resource request: ${details.url}`);
-  //     callback({ cancel: true }); // Block
-  //   }
-  // });
-
-
   createWindow();
+  startBackgroundCleaner();
 
   app.on('activate', function () {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
 });
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
-app.on('window-all-closed', function () {
-  if (process.platform !== 'darwin') app.quit();
+// Unregister shortcuts on quit to restore system normality
+app.on('will-quit', () => {
+  globalShortcut.unregisterAll();
 });
 
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
-
-// Optional: Basic security listeners
-app.on('web-contents-created', (event, contents) => {
-  contents.on('will-attach-webview', (event, webPreferences, params) => {
-    // Disable Node.js integration in webviews
-    webPreferences.nodeIntegration = false;
-    // Verify URL being loaded
-    // if (!params.src.startsWith(BASE_URL)) { // Be more specific if needed
-    //   event.preventDefault();
-    // }
-  });
+app.on('window-all-closed', function () {
+  if (process.platform !== 'darwin') app.quit();
 });

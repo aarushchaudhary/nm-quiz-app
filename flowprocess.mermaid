@@ -1,0 +1,98 @@
+flowchart TD
+    %% Client Layer
+    subgraph "Client Browser" 
+        direction TB
+        CB_CSS["assets/css"]:::frontend
+        CB_JS["assets/js"]:::frontend
+        CB_IMG["assets/images"]:::frontend
+        CB_CHART["lib/chartjs/chart.umd.js"]:::external
+    end
+
+    %% Server Layer
+    subgraph "Web Server & PHP Runtime"
+        direction TB
+        WS_INDEX["index.php"]:::backend
+        WS_LOGIN["login.php"]:::backend
+        WS_LOGOUT["logout.php"]:::backend
+        WS_CONFIG["config/*.php"]:::backend
+        WS_VENDOR["lib/vendor"]:::backend
+        WS_COMPOSER_JSON["lib/composer.json"]:::backend
+        WS_COMPOSER_LOCK["lib/composer.lock"]:::backend
+    end
+
+    %% API Layer
+    subgraph "API Layer"
+        direction TB
+        API_AUTH["api/auth.php"]:::backend
+        API_ADMIN["api/admin/*.php"]:::backend
+        API_FACULTY["api/faculty/*.php"]:::backend
+        API_PLACECOM["api/placecom/*.php"]:::backend
+        API_SHARED["api/shared/*.php"]:::backend
+        API_STUDENT["api/student/*.php"]:::backend
+    end
+
+    %% Database
+    DB["MySQL\n(schema.sql)"]:::database
+
+    %% External Services
+    subgraph "External Libraries & Services"
+        direction TB
+        EXT_PS["PHPSpreadsheet\n(lib/vendor)"]:::external
+        EXT_SMTP["SMTP Service"]:::external
+    end
+
+    %% Connections
+    CB_CSS -->|HTTP Requests| WS_INDEX
+    CB_JS -->|HTTP Requests| WS_INDEX
+    CB_IMG -->|HTTP Requests| WS_INDEX
+    CB_CHART -->|Loads Chart.js| CB_JS
+
+    CB_JS -->|AJAX JSON| API_AUTH
+    CB_JS -->|AJAX JSON| API_ADMIN
+    CB_JS -->|AJAX JSON| API_FACULTY
+    CB_JS -->|AJAX JSON| API_PLACECOM
+    CB_JS -->|AJAX JSON| API_SHARED
+    CB_JS -->|AJAX JSON| API_STUDENT
+
+    API_AUTH -->|SQL Query| DB
+    API_ADMIN -->|SQL Query| DB
+    API_FACULTY -->|SQL Query| DB
+    API_PLACECOM -->|SQL Query| DB
+    API_SHARED -->|SQL Query| DB
+    API_STUDENT -->|SQL Query| DB
+
+    API_ADMIN -->|Excel Import/Export| EXT_PS
+    API_FACULTY -->|Excel Export| EXT_PS
+
+    API_SHARED -->|Email Notifications| EXT_SMTP
+    API_STUDENT -->|Event Logs| API_SHARED
+
+    %% Click Events
+    click CB_CSS "https://github.com/aarushchaudhary/nm-quiz-app/tree/main/assets/css"
+    click CB_JS "https://github.com/aarushchaudhary/nm-quiz-app/tree/main/assets/js"
+    click CB_IMG "https://github.com/aarushchaudhary/nm-quiz-app/tree/main/assets/images"
+    click CB_CHART "https://github.com/aarushchaudhary/nm-quiz-app/blob/main/lib/chartjs/chart.umd.js"
+
+    click WS_INDEX "https://github.com/aarushchaudhary/nm-quiz-app/blob/main/index.php"
+    click WS_LOGIN "https://github.com/aarushchaudhary/nm-quiz-app/blob/main/login.php"
+    click WS_LOGOUT "https://github.com/aarushchaudhary/nm-quiz-app/blob/main/logout.php"
+    click WS_CONFIG "https://github.com/aarushchaudhary/nm-quiz-app/blob/main/config/*.php"
+    click WS_VENDOR "https://github.com/aarushchaudhary/nm-quiz-app/tree/main/lib/vendor/"
+    click WS_COMPOSER_JSON "https://github.com/aarushchaudhary/nm-quiz-app/blob/main/lib/composer.json"
+    click WS_COMPOSER_LOCK "https://github.com/aarushchaudhary/nm-quiz-app/blob/main/lib/composer.lock"
+
+    click API_AUTH "https://github.com/aarushchaudhary/nm-quiz-app/blob/main/api/auth.php"
+    click API_ADMIN "https://github.com/aarushchaudhary/nm-quiz-app/tree/main/api/admin/"
+    click API_FACULTY "https://github.com/aarushchaudhary/nm-quiz-app/tree/main/api/faculty/"
+    click API_PLACECOM "https://github.com/aarushchaudhary/nm-quiz-app/tree/main/api/placecom/"
+    click API_SHARED "https://github.com/aarushchaudhary/nm-quiz-app/tree/main/api/shared/"
+    click API_STUDENT "https://github.com/aarushchaudhary/nm-quiz-app/tree/main/api/student/"
+
+    click DB "https://github.com/aarushchaudhary/nm-quiz-app/blob/main/schema.sql"
+    click EXT_PS "https://github.com/aarushchaudhary/nm-quiz-app/tree/main/lib/vendor/"
+    
+    %% Styles
+    classDef frontend fill:#bbdefb,stroke:#0d47a1,color:#0d47a1;
+    classDef backend fill:#c8e6c9,stroke:#1b5e20,color:#1b5e20;
+    classDef database fill:#ffe0b2,stroke:#e65100,color:#e65100;
+    classDef external fill:#e1bee7,stroke:#4a148c,color:#4a148c;
