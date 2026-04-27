@@ -296,7 +296,13 @@ nmims_quiz_app/
    cd ..
    ```
 
-3. **Configure database**
+3. **Fetch Chart.js library**
+   ```bash
+   curl -o lib/chartjs/chart.umd.js https://cdn.jsdelivr.net/npm/chart.js@3/dist/chart.umd.js
+   ```
+   This downloads the Chart.js library required for data visualization and analytics charts.
+
+4. **Configure database**
    - Ensure MariaDB/MySQL service is running
    - Import database schema:
      ```bash
@@ -305,7 +311,7 @@ nmims_quiz_app/
    - Default connection: `host=127.0.0.1`, `user=root`, `password=''` (empty), `database=nmims_quiz_app`
    - **Note**: Credentials are hardcoded in `config/database.php` for the built-in server environment
 
-4. **Start the application**
+5. **Start the application**
    - Navigate to the project root:
      ```bash
      cd nmims_quiz_app
