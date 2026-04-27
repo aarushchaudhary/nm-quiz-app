@@ -297,10 +297,13 @@ nmims_quiz_app/
    ```
 
 3. **Fetch Chart.js library**
+   Create the chartjs directory if it doesn't exist, then download the Chart.js library:
    ```bash
+   mkdir -p lib/chartjs
    curl -o lib/chartjs/chart.umd.js https://cdn.jsdelivr.net/npm/chart.js@3/dist/chart.umd.js
    ```
    This downloads the Chart.js library required for data visualization and analytics charts.
+   **Note**: `chart.umd.js` is not tracked in git and must be downloaded during setup (see `.gitignore`).
 
 4. **Configure database**
    - Ensure MariaDB/MySQL service is running
