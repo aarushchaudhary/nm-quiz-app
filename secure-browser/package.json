@@ -17,7 +17,7 @@
        "appId": "com.nmims.securequizapp",
        "productName": "NMIMS Secure Quiz App",
        "win": {
-         "target": "nsis",
+         "target": ["nsis", "msi"],
          "icon": "build/icon.ico"
        },
        "nsis": {

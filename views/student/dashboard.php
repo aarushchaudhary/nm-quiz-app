@@ -1,6 +1,5 @@
 <?php
-  $pageTitle = 'Student Dashboard';
-  $customCSS = 'manage.css'; 
+  $pageTitle = 'Student Dashboard'; 
   
   require_once '../../assets/templates/header.php';
   require_once '../../config/database.php';

@@ -1,6 +1,5 @@
 <?php
-  $pageTitle = 'Edit Question';
-  $customCSS = 'manage.css'; 
+  $pageTitle = 'Edit Question'; 
   require_once '../../assets/templates/header.php';
   require_once '../../config/database.php';
 

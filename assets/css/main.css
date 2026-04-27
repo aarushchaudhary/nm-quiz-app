@@ -1,0 +1,1326 @@
+/*
+ * main.css
+ * Consolidated stylesheet merging base.css, components.css, login.css, manage.css, and exam.css
+ * Organized using ITCSS (Inverted Triangle CSS) architecture
+ */
+
+/* ============================================================================
+   1. SETTINGS & RESETS (base.css)
+   ============================================================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+/* ============================================================================
+   2. BASE & TYPOGRAPHY (base.css)
+   ============================================================================ */
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: url('../images/background.jpg') no-repeat center center fixed;
+  background-size: cover;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+/* ============================================================================
+   3. HEADER & FOOTER LAYOUT (base.css)
+   ============================================================================ */
+
+.ribbon {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: white;
+  color: black;
+  padding: 10px 20px;
+  position: relative;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.logo {
+  height: 40px;
+  width: auto;
+}
+
+.site-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 24px;
+  margin: 0;
+}
+
+.header-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.home-button,
+.logout-button {
+  text-decoration: none;
+  color: white;
+  background-color: #e60000;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.home-button:hover,
+.logout-button:hover {
+  background-color: #cc0000;
+}
+
+.footer {
+  width: 100%;
+  background-color: white;
+  color: black;
+  text-align: center;
+  padding: 10px 0;
+  font-size: 14px;
+  border-top: 1px solid #ccc;
+  flex-shrink: 0;
+}
+
+/* ============================================================================
+   4. REUSABLE COMPONENTS (components.css)
+   ============================================================================ */
+
+/* --- Input Fields --- */
+.input-field {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #f0f0f0;
+  font-size: 16px;
+}
+
+/* --- Buttons --- */
+.button-red {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background-color: #e60000;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+  transition: background-color 0.3s ease;
+}
+
+.button-red:hover {
+  background-color: #cc0000;
+}
+
+/* --- Login Box (from components.css) --- */
+.login-box {
+  background-color: white;
+  padding: 30px;
+  border-radius: 15px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 360px;
+  text-align: center;
+}
+
+.login-box h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  font-size: 22px;
+}
+
+/* --- Dashboard Center Content --- */
+.dashboard-center-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.welcome-message {
+  background-color: rgba(255, 255, 255, 0.9);
+  color: black;
+  font-size: 20px;
+  font-weight: bold;
+  border-radius: 8px;
+  padding: 15px 20px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  display: inline-block;
+  margin-bottom: 25px;
+}
+
+.button-group {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.button-group .button-red {
+  padding: 16px 32px;
+  font-size: 18px;
+  width: auto;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Smaller buttons for filter forms */
+.filter-form .button-group button,
+.filter-form .button-group a {
+  padding: 8px 16px !important;
+  font-size: 14px !important;
+  box-shadow: none !important;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Align button-group with form fields in same row */
+.filter-form .form-row .button-group {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  margin-bottom: 0;
+}
+
+.filter-form .form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- Form Container --- */
+.form-container {
+  background-color: white;
+  padding: 30px 40px;
+  border-radius: 15px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 700px;
+  text-align: left;
+}
+
+.form-container h2 {
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: 25px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+  background-color: #f9f9f9;
+}
+
+.form-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.form-row .form-group {
+  flex: 1;
+  min-width: 150px;
+}
+
+/* ============================================================================
+   5. PAGE-SPECIFIC: LOGIN (login.css)
+   ============================================================================ */
+
+/* Login page uses narrower form container */
+.login-form {
+  max-width: 400px !important;
+}
+
+/* ============================================================================
+   6. PAGE-SPECIFIC: MANAGE/ADMIN (manage.css)
+   ============================================================================ */
+
+.manage-container {
+  background-color: white;
+  padding: 30px 40px;
+  border-radius: 15px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 1200px;
+  text-align: left;
+  margin-bottom: 40px;
+}
+
+.manage-container h2 {
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: 25px;
+}
+
+.section-box {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 25px;
+  margin-top: 30px;
+}
+
+.section-box h3 {
+  margin-top: 0;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* --- Message Boxes --- */
+.message-box {
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.success-message {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+/* --- Data Tables --- */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.data-table th,
+.data-table td {
+  padding: 15px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+  vertical-align: middle;
+}
+
+.data-table thead th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+  color: #333;
+}
+
+.data-table tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+/* --- Status Badges --- */
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
+  text-transform: capitalize;
+  display: inline-block;
+  text-align: center;
+}
+
+.status-not_started {
+  background-color: #6c757d;
+}
+
+.status-lobby_open {
+  background-color: #007bff;
+}
+
+.status-in_progress {
+  background-color: #ffc107;
+  color: #333;
+}
+
+.status-completed {
+  background-color: #28a745;
+}
+
+/* --- Action Buttons --- */
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.action-buttons a {
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  color: white;
+  font-size: 14px;
+  transition: opacity 0.3s ease;
+  text-align: center;
+}
+
+.action-buttons a:hover {
+  opacity: 0.8;
+}
+
+.btn-manage {
+  background-color: #17a2b8;
+}
+
+.btn-edit {
+  background-color: #ffc107;
+  color: #333;
+}
+
+.btn-results {
+  background-color: #28a745;
+}
+
+.btn-start-quiz {
+  background-color: #28a745;
+}
+
+.btn-reports {
+  background-color: #6f42c1;
+  color: white;
+}
+
+.btn-logs {
+  background-color: #e83e8c;
+  color: white;
+}
+
+.btn-delete-quiz {
+  background-color: #dc3545;
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+  text-align: center;
+}
+
+/* --- Dashboard Cards --- */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 25px;
+  width: 100%;
+  max-width: 1200px;
+  margin-top: 20px;
+}
+
+.dashboard-card {
+  background-color: #fff;
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.dashboard-card .card-icon {
+  font-size: 36px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dashboard-card .card-info .card-title {
+  font-size: 16px;
+  color: #6c757d;
+  margin: 0 0 5px 0;
+}
+
+.dashboard-card .card-info .card-number {
+  font-size: 28px;
+  font-weight: bold;
+  color: #333;
+  margin: 0;
+}
+
+.card-students .card-icon {
+  background-color: #e7f3ff;
+  color: #007bff;
+}
+
+.card-faculty .card-icon {
+  background-color: #e5f9f0;
+  color: #28a745;
+}
+
+.card-quizzes .card-icon {
+  background-color: #fff4e5;
+  color: #ffc107;
+}
+
+.card-active .card-icon {
+  background-color: #fde6e8;
+  color: #dc3545;
+}
+
+/* --- Quiz Details & Control Panel --- */
+.quiz-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  margin-bottom: 30px;
+}
+
+.detail-item {
+  background-color: #fff;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #eee;
+}
+
+.detail-item strong {
+  display: block;
+  color: #555;
+  margin-bottom: 5px;
+  font-size: 14px;
+}
+
+.detail-item span {
+  font-size: 16px;
+  color: #333;
+}
+
+.control-panel {
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
+  padding: 25px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.control-panel h3 {
+  margin-top: 0;
+}
+
+.control-panel .button-group {
+  justify-content: center;
+  gap: 15px;
+  display: flex;
+}
+
+.control-panel .button-group button {
+  font-size: 16px;
+  padding: 12px 24px;
+  width: auto;
+  color: white;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-open-lobby {
+  background-color: #007bff;
+}
+
+.btn-start-exam {
+  background-color: #28a745;
+}
+
+.btn-end-exam {
+  background-color: #dc3545;
+}
+
+/* --- Upload Forms --- */
+.upload-form .form-group {
+  max-width: 500px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.upload-form .button-red {
+  width: auto;
+  padding-left: 30px;
+  padding-right: 30px;
+}
+
+/* --- Manual Add Forms --- */
+.manual-add-form .form-group {
+  margin-bottom: 20px;
+}
+
+.manual-add-form .form-group label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.manual-add-form .form-group input,
+.manual-add-form .form-group select,
+.manual-add-form textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+  background-color: #f9f9f9;
+}
+
+.manual-add-form textarea {
+  min-height: 80px;
+  font-family: inherit;
+}
+
+.manual-add-form .form-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.manual-add-form .form-row .form-group {
+  flex: 1;
+  min-width: 150px;
+}
+
+/* --- Options Container --- */
+.options-container {
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  margin-top: 15px;
+}
+
+.option-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.option-item input[type="text"] {
+  flex-grow: 1;
+}
+
+.option-item label {
+  font-weight: bold;
+}
+
+.correct-answer-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.correct-answer-group input {
+  width: auto !important;
+}
+
+/* --- Reports --- */
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.report-header h2 {
+  margin: 0;
+}
+
+.report-selector .form-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 0;
+}
+
+.report-selector label {
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+
+.report-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+  margin-bottom: 30px;
+}
+
+.summary-card {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+}
+
+.summary-card .card-title {
+  font-size: 16px;
+  color: #6c757d;
+  margin: 0 0 10px 0;
+}
+
+.summary-card .card-value {
+  font-size: 28px;
+  font-weight: bold;
+  color: #343a40;
+  margin: 0;
+}
+
+.results-table .disqualified td {
+  background-color: #f8d7da;
+  color: #721c24;
+  text-decoration: line-through;
+}
+
+/* --- Item Analysis --- */
+.item-analysis-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 25px;
+}
+
+.analysis-card {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 25px;
+}
+
+.analysis-card h4 {
+  margin-top: 0;
+  font-size: 18px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+}
+
+.analysis-stats {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 20px;
+  font-size: 16px;
+}
+
+.analysis-stats strong {
+  color: #28a745;
+}
+
+.analysis-options-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.analysis-option-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 8px;
+}
+
+.analysis-option-item.correct {
+  background-color: #d4edda;
+  font-weight: bold;
+}
+
+.option-text {
+  flex-grow: 1;
+}
+
+.option-count {
+  font-weight: bold;
+  margin-left: 20px;
+  min-width: 100px;
+}
+
+/* --- Evaluation Cards --- */
+.evaluation-card {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 25px;
+  padding: 25px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.evaluation-card .student-info {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.evaluation-card .question-text-eval {
+  font-style: italic;
+  color: #555;
+  margin-bottom: 10px;
+}
+
+.evaluation-card .answer-text {
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-radius: 5px;
+  min-height: 50px;
+  line-height: 1.6;
+}
+
+.evaluation-form {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+}
+
+/* ============================================================================
+   7. PAGE-SPECIFIC: EXAM (exam.css)
+   ============================================================================ */
+
+/* --- Exam Mode Global Styles --- */
+body.exam-mode {
+  user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+}
+
+/* --- Lobby Styles --- */
+.lobby-container {
+  background-color: white;
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 800px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.lobby-container h2 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 28px;
+  color: #333;
+}
+
+.lobby-container .quiz-title {
+  font-size: 22px;
+  color: #e60000;
+  margin: 0 0 25px 0;
+  font-weight: bold;
+}
+
+.lobby-instructions {
+  font-size: 16px;
+  color: #555;
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto 30px auto;
+}
+
+.lobby-instructions-box {
+  text-align: left;
+  max-width: 600px;
+  margin: 30px auto;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+}
+
+.lobby-instructions-box h3 {
+  margin-top: 0;
+  text-align: center;
+  color: #333;
+}
+
+.lobby-instructions-box ul {
+  padding-left: 20px;
+  list-style: none;
+  margin: 0;
+}
+
+.lobby-instructions-box ul li {
+  margin-bottom: 10px;
+  padding-left: 25px;
+  position: relative;
+  line-height: 1.5;
+}
+
+.lobby-instructions-box ul li::before {
+  content: '✔';
+  position: absolute;
+  left: 0;
+  color: #28a745;
+  font-weight: bold;
+}
+
+/* --- Spinner Animation --- */
+.spinner {
+  border: 8px solid #f3f3f3;
+  border-top: 8px solid #e60000;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1.5s linear infinite;
+  margin: 20px auto;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.status-text {
+  margin-top: 20px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+}
+
+/* --- Exam Page Styles --- */
+.exam-container {
+  width: 100%;
+  max-width: 900px;
+  background-color: #fff;
+  border-radius: 15px;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.1);
+  padding: 30px 40px;
+  display: flex;
+  flex-direction: column;
+}
+
+.exam-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 25px;
+}
+
+.exam-header .question-counter {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+}
+
+.exam-header .timer {
+  font-size: 18px;
+  font-weight: bold;
+  background-color: #e60000;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+}
+
+.question-area {
+  margin-bottom: 30px;
+}
+
+.question-text {
+  font-size: 20px;
+  line-height: 1.5;
+  color: #333;
+  margin-bottom: 25px;
+}
+
+.options-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 15px;
+}
+
+.option-label {
+  display: block;
+  background-color: #f8f9fa;
+  border: 2px solid #dee2e6;
+  padding: 15px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  font-size: 16px;
+}
+
+.option-label:hover {
+  border-color: #e60000;
+}
+
+.option-label input {
+  margin-right: 12px;
+}
+
+.option-label input:checked + span {
+  font-weight: bold;
+}
+
+.option-label.selected {
+  background-color: #ffeeba;
+  border-color: #ffc107;
+}
+
+/* --- Descriptive Answer Textarea --- */
+.descriptive-answer-area {
+  width: 100%;
+  min-height: 150px;
+  padding: 15px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-family: inherit;
+  resize: vertical;
+  user-select: text;
+  -webkit-user-select: text;
+  -ms-user-select: text;
+}
+
+.exam-footer {
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-next {
+  background-color: #28a745;
+  color: white;
+  padding: 12px 30px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn-next:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+/* --- Overlays & Modals --- */
+#loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+#warning-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.75);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  padding: 20px;
+}
+
+.warning-box {
+  background: white;
+  padding: 40px;
+  border-radius: 15px;
+  text-align: center;
+  max-width: 500px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+.warning-box h2 {
+  color: #dc3545;
+  margin-top: 0;
+  font-size: 28px;
+}
+
+.warning-box p {
+  font-size: 18px;
+  line-height: 1.6;
+  color: #333;
+}
+
+.warning-box .warning-count {
+  font-size: 22px;
+  font-weight: bold;
+  color: #dc3545;
+}
+
+/* --- Detailed Results Page --- */
+.detailed-results-container {
+  width: 100%;
+  max-width: 900px;
+}
+
+.question-review-card {
+  background-color: #fff;
+  border-radius: 10px;
+  padding: 25px;
+  margin-bottom: 20px;
+  border: 1px solid #ddd;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.question-review-card h4 {
+  margin-top: 0;
+  font-size: 18px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+  line-height: 1.5;
+}
+
+.review-option {
+  padding: 12px 15px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  border: 2px solid transparent;
+  font-size: 16px;
+}
+
+.review-option.correct-answer {
+  background-color: #d4edda;
+  border-color: #28a745;
+}
+
+.review-option.selected.correct-answer {
+  font-weight: bold;
+}
+
+.review-option.selected.incorrect-answer {
+  background-color: #f8d7da;
+  border-color: #dc3545;
+  text-decoration: line-through;
+}
+
+/* ============================================================================
+   8. MODALS & OVERLAYS (Management Pages)
+   ============================================================================ */
+
+.confirm-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1500;
+}
+
+.confirm-modal-overlay.show {
+  display: flex;
+}
+
+.confirm-modal {
+  background-color: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+  max-width: 400px;
+  text-align: center;
+}
+
+.confirm-modal h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 22px;
+  color: #333;
+}
+
+.confirm-modal p {
+  margin-bottom: 20px;
+  color: #555;
+  line-height: 1.5;
+}
+
+.confirm-modal .button-group {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.btn-cancel {
+  background-color: #6c757d;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.btn-cancel:hover {
+  background-color: #5a6268;
+}
+
+.btn-confirm-delete {
+  background-color: #dc3545;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.btn-confirm-delete:hover {
+  background-color: #c82333;
+}
+
+.reset-password-form {
+  margin-bottom: 20px;
+}
+
+.reset-password-form .form-group {
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+.reset-password-form .form-group label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.reset-password-form .form-group input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 16px;
+}
+
+/* ============================================================================
+   9. PAGINATION CONTROLS (Management Pages)
+   ============================================================================ */
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 30px;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.page-info {
+  font-size: 14px;
+  color: #666;
+  font-weight: bold;
+}
+
+.items-per-page-form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.items-per-page-form label {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+}
+
+.items-per-page-form select {
+  padding: 5px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: white;
+  cursor: pointer;
+}
+
+.page-links {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.page-links a,
+.page-links .current-page {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  text-decoration: none;
+  color: #007bff;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  background-color: white;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.page-links a:hover {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.page-links .current-page {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+  cursor: default;
+}

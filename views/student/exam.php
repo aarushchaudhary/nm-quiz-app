@@ -1,6 +1,5 @@
 <?php
   $pageTitle = 'Taking Exam';
-  $customCSS = 'exam.css';
   // **CRITICAL FIX:** This flag tells the header to hide the buttons.
   $isExamPage = true; 
   
@@ -43,7 +42,7 @@
     <p id="click-prompt" style="margin-top: 15px; font-size: 18px;"></p>
 </div>
 
-<script src="/nmims_quiz_app/assets/js/exam_logic.js" defer></script>
+<script src="/nmims_quiz_app/assets/js/script.js" defer></script>
 
 <?php
   // The footer is intentionally omitted on the exam page.

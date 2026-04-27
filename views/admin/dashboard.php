@@ -1,6 +1,5 @@
 <?php
   $pageTitle = 'Admin Dashboard';
-  $customCSS = 'manage.css';
   require_once '../../assets/templates/header.php';
 
   // --- Authorization Check for Admin (role_id = 1) ---

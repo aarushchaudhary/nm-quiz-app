@@ -1,6 +1,5 @@
 <?php
   $pageTitle = 'Question Item Analysis';
-  $customCSS = 'manage.css';
   require_once '../../assets/templates/header.php';
 
   $quiz_id = isset($_GET['quiz_id']) ? filter_var($_GET['quiz_id'], FILTER_VALIDATE_INT) : null;

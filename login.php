@@ -1,10 +1,8 @@
 <?php
-  // **FIX:** Added variables to set the page title and link the correct stylesheet.
   $pageTitle = 'Login';
-  $customCSS = 'login.css'; 
   require_once 'assets/templates/header.php';
 ?>
-<div class="form-container">
+<div class="form-container login-form">
   <h2>User Login</h2>
   
   <div id="message-box" class="message-box error-message" style="display: none;"></div>
@@ -22,7 +20,7 @@
   </form>
 </div>
 
-<script src="/nmims_quiz_app/assets/js/login.js" defer></script>
+<script src="/nmims_quiz_app/assets/js/script.js" defer></script>
 
 <?php
   require_once 'assets/templates/footer.php';

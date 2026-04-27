@@ -13,11 +13,8 @@ if (session_status() == PHP_SESSION_NONE) {
     
     <link rel="icon" type="image/png" href="/nmims_quiz_app/assets/images/favicon.jpg">
     
-    <link rel="stylesheet" href="/nmims_quiz_app/assets/css/base.css" />
-    <link rel="stylesheet" href="/nmims_quiz_app/assets/css/components.css" />
-    <?php if (isset($customCSS)): ?>
-        <link rel="stylesheet" href="/nmims_quiz_app/assets/css/<?php echo htmlspecialchars($customCSS); ?>" />
-    <?php endif; ?>
+    <!-- Consolidated stylesheet: Replaces base.css, components.css, login.css, manage.css, exam.css -->
+    <link rel="stylesheet" href="/nmims_quiz_app/assets/css/main.css" />
 </head>
 <body>
     <header class="ribbon">

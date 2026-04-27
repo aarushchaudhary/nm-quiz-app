@@ -1,6 +1,5 @@
 <?php
   $pageTitle = 'Exam Lobby';
-  $customCSS = 'exam.css';
   
   require_once '../../assets/templates/header.php';
   require_once '../../config/database.php';

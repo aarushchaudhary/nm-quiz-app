@@ -1,7 +1,73 @@
 /*
- * exam_logic.js
- * Handles all client-side logic for the student exam page.
+ * script.js
+ * Merged file containing:
+ * - Login page logic (from login.js)
+ * - Exam page logic (from exam_logic.js)
+ * Both modules are independent and wrapped in DOMContentLoaded listeners.
  */
+
+/* ========== LOGIN MODULE ========== */
+document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.getElementById('login-form');
+    const messageBox = document.getElementById('message-box');
+
+    // Only run login logic if login form exists
+    if (loginForm) {
+        loginForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(loginForm);
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                const response = await fetch('/nmims_quiz_app/api/auth.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    window.location.href = '/nmims_quiz_app/index.php';
+                } else if (result.status === 'conflict') {
+                    // Show a confirmation dialog
+                    if (confirm(result.message)) {
+                        // If user clicks OK, send a "force login" request
+                        forceLogin(data);
+                    }
+                } else {
+                    throw new Error(result.message || 'An unknown error occurred.');
+                }
+            } catch (error) {
+                messageBox.textContent = `Error: ${error.message}`;
+                messageBox.style.display = 'block';
+            }
+        });
+
+        async function forceLogin(data) {
+            data.force = true; // Add the force flag
+            try {
+                const response = await fetch('/nmims_quiz_app/api/auth.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                if (result.status === 'success') {
+                    window.location.href = '/nmims_quiz_app/index.php';
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                messageBox.textContent = `Error: ${error.message}`;
+                messageBox.style.display = 'block';
+            }
+        }
+    }
+});
+
+/* ========== EXAM MODULE ========== */
 document.addEventListener('DOMContentLoaded', async function() {
     // --- State and UI Variables ---
     const ui = {
@@ -16,6 +82,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         nextBtn: document.getElementById('next-btn'),
         clickPrompt: document.getElementById('click-prompt')
     };
+
+    // Only run exam logic if exam container exists
+    if (!ui.examContainer) return;
 
     const quizId = ui.examContainer.dataset.quizId;
     const examState = { questions: [], currentQuestionIndex: 0, attemptId: null, questionStartTime: null };
@@ -32,10 +101,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             examState.questions = data.questions;
             examState.attemptId = data.attempt_id;
 
-            document.addEventListener('visibilitychange', handleVisibilityChange);
-            document.addEventListener('fullscreenchange', handleFullscreenChange);
-            document.addEventListener('contextmenu', event => event.preventDefault());
-            document.addEventListener('keydown', handleKeyDown);
+            // Anti-cheating mechanisms removed. Original listeners:
+            // - visibilitychange, fullscreenchange, contextmenu, keydown
             
             if (examState.questions.length === 0) {
                 throw new Error('This quiz has no questions. Please contact your faculty.');
@@ -48,10 +115,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             ui.examContainer.style.display = 'flex';
 
         } catch (error) {
-            document.removeEventListener('visibilitychange', handleVisibilityChange);
-            document.removeEventListener('fullscreenchange', handleFullscreenChange);
-            document.removeEventListener('contextmenu', event => event.preventDefault());
-            document.removeEventListener('keydown', handleKeyDown);
+            // Removed event listener cleanup (previously removed handlers no longer need cleanup)
             alert(`Error starting exam: ${error.message}`);
             window.location.href = 'dashboard.php';
         }
@@ -206,86 +270,9 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
     }
     
-    function enterFullscreen() { document.documentElement.requestFullscreen().catch(err => console.error(err)); }
-    
-    async function logViolation(description) {
-        if (!examState.attemptId) {
-            console.error("Attempt ID not available. Cannot log violation.");
-            return;
-        }
-        await fetch('/nmims_quiz_app/api/student/log_event.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                attempt_id: examState.attemptId,
-                event_type: 'Violation',
-                description: description
-            })
-        });
-    }
-
-    function triggerViolation(description) {
-        if (proctoringState.examFinished) return;
-        proctoringState.warningCount++;
-        logViolation(description);
-        if (proctoringState.warningCount >= 3) {
-            finishExam(true);
-        } else {
-            ui.warningCountSpan.textContent = `${proctoringState.warningCount} of 3`;
-            ui.warningOverlay.style.display = 'flex';
-            setTimeout(() => { ui.warningOverlay.style.display = 'none'; }, 4000);
-        }
-    }
-
-    function handleVisibilityChange() {
-        if (document.hidden) {
-            triggerViolation(`User left the exam tab. Warning #${proctoringState.warningCount + 1}.`);
-        }
-    }
-
-    function handleFullscreenChange() {
-        if (!document.fullscreenElement) {
-            triggerViolation(`User exited fullscreen. Warning #${proctoringState.warningCount + 1}.`);
-            setTimeout(enterFullscreen, 1000);
-        }
-    }
-
-    // --- MODIFICATION START ---
-    // Expanded this function to block more Ctrl-key combinations like Ctrl+Tab.
-    function handleKeyDown(event) {
-        if (proctoringState.examFinished) return;
-
-        const key = event.key.toUpperCase();
-        const isFunctionKey = event.key.startsWith('F') && event.key.length > 1 && !isNaN(event.key.substring(1));
-
-        // Block Alt, Windows/Cmd, and all Function Keys (F1-F12)
-        if (event.altKey || event.metaKey || isFunctionKey) {
-            event.preventDefault();
-            let keyName = "a system key";
-            if (event.altKey) keyName = "the Alt key";
-            if (event.metaKey) keyName = "the Windows/Cmd key";
-            if (isFunctionKey) keyName = `the ${event.key} key`;
-            
-            triggerViolation(`Attempted to use ${keyName}. Warning #${proctoringState.warningCount + 1}.`);
-            return; // Stop processing to prevent multiple violation triggers
-        }
-
-        // Block other specific ctrl-based shortcuts
-        const ctrl = event.ctrlKey;
-        const shift = event.shiftKey;
-
-        // Expanded list of forbidden Ctrl combinations
-        if (
-            (ctrl && key === 'TAB') ||                                          // Block switching tabs
-            (ctrl && shift && (key === 'I' || key === 'J' || key === 'C')) ||   // Block Dev tools
-            (ctrl && (key === 'U' || key === 'R' || key === 'T' || key === 'N' || key === 'W' || key === 'P' || key === 'S')) // Block View Source, Reload, New Tab/Window, Close, Print, Save
-           ) {
-            
-            event.preventDefault();
-            triggerViolation(`Attempted to use a restricted shortcut (Ctrl+${event.key}). Warning #${proctoringState.warningCount + 1}.`);
-        }
-    }
-    // --- MODIFICATION END ---
+    // REMOVED: enterFullscreen() function - fullscreen enforcement removed
+    // REMOVED: logViolation() function - violation logging removed
+    // REMOVED: triggerViolation() function - violation triggering removed
 
 
     // --- Event Listeners ---
@@ -333,7 +320,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
         
         document.body.addEventListener('click', async () => {
-            enterFullscreen();
+            // Removed: enterFullscreen() call - fullscreen enforcement removed
             await startExam();
         }, { once: true });
     }

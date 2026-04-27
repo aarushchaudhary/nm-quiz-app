@@ -1,6 +1,5 @@
 <?php
-  $pageTitle = 'Edit Quiz';
-  $customCSS = 'manage.css'; 
+  $pageTitle = 'Edit Quiz'; 
   require_once '../../assets/templates/header.php';
   require_once '../../config/database.php';
 

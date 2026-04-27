@@ -1,6 +1,5 @@
 <?php
   $pageTitle = 'Detailed Results';
-  $customCSS = 'exam.css';
   require_once '../../assets/templates/header.php';
 
   $attempt_id = isset($_GET['attempt_id']) ? filter_var($_GET['attempt_id'], FILTER_VALIDATE_INT) : null;

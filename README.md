@@ -1,103 +1,433 @@
-# NM Quiz App 📚
+# NMIMS Quiz App 📚
 
-A comprehensive web-based quiz application designed for educational institutions, featuring real-time monitoring, automated grading, and advanced proctoring capabilities.
+A comprehensive web-based quiz application designed for educational institutions like NMIMS, featuring real-time monitoring, automated grading, and multi-role access control.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)
 ![MySQL](https://img.shields.io/badge/MySQL-5.7%2B-orange.svg)
 
+## 📋 Table of Contents
+- [Features](#-features)
+- [Architecture](#-system-architecture)
+- [Technology Stack](#-technology-stack)
+- [Project Structure](#-project-structure)
+- [Installation](#-installation)
+- [Usage](#-usage)
+- [Database Schema](#-database-schema)
+- [API Reference](#-api-reference)
+- [Security](#-security)
+- [License](#-license)
+
 ## 🌟 Features
 
 ### For Students
-- **Real-time Quiz Participation**: Join quiz lobbies and take exams in real-time
-- **Multiple Question Types**: Support for MCQ, descriptive, and other question formats
-- **Progress Tracking**: Monitor your quiz progress and submission status
-- **Instant Results**: View results immediately after quiz completion (for auto-graded questions)
-- **Secure Exam Environment**: Built-in proctoring features to ensure academic integrity
+- **Real-time Quiz Participation**: Join quiz lobbies and take exams with live status updates
+- **Multiple Question Types**: Support for MCQ (single/multiple choice) and descriptive questions
+- **Auto-Save Functionality**: Answers are automatically saved as you progress through the exam
+- **Progress Tracking**: Real-time display of current question and total question count
+- **Instant Results**: View results immediately after quiz completion with detailed breakdowns
+- **Responsive UI**: Optimized exam interface that works on different screen sizes
+- **Quiz Timer**: Real-time countdown timer for time-bound exams
 
 ### For Faculty
-- **Quiz Creation & Management**: Create, edit, and manage quizzes with ease
-- **Bulk Question Upload**: Import questions via Excel spreadsheets using provided templates
-- **Real-time Monitoring**: Track student progress during live exams
-- **Automated Grading**: Automatic grading for objective questions
-- **Manual Evaluation**: Interface for grading descriptive answers
+- **Quiz Creation & Management**: Create, edit, and publish quizzes with ease
+- **Question Management**: Add, edit, and delete questions individually or in bulk
+- **Bulk Upload**: Import questions via Excel spreadsheets using provided templates
+- **Real-time Monitoring**: Track student progress during live exams with live dashboard
+- **Automated Grading**: Instant automatic grading for objective questions
+- **Manual Evaluation**: Interface for grading descriptive answers with feedback
 - **Comprehensive Reports**: Export results and generate detailed analytics
+- **Item Analysis**: Statistical analysis of question difficulty and student performance
 - **Exam Control**: Start, pause, or stop exams in real-time
+- **Quiz Status Management**: Enable/disable quizzes and control student access
 
 ### For Placement Committee
 - **Specialized Assessments**: Create placement-specific tests and aptitude exams
 - **Candidate Management**: Track and evaluate placement candidates
 - **Company-wise Reports**: Generate reports for different recruiting companies
+- **Result Aggregation**: Consolidated view of all placement assessment results
 
 ### For Administrators
 - **User Management**: Add, edit, and manage student and faculty accounts
-- **Bulk User Upload**: Import users via Excel templates
-- **System Overview**: Monitor all active quizzes and system usage
-- **Access Control**: Manage permissions and user roles
+- **Bulk User Upload**: Import users via Excel templates for faster onboarding
+- **Role Management**: Manage user roles and permissions
+- **School & Course Management**: Organize users by schools and courses
+- **Specialization Assignment**: Bulk assign specializations to students
+- **System Overview**: Monitor all active quizzes and system-wide usage
+- **Event Logs**: Track all system events and user activities
+- **Password Reset**: Reset student/faculty passwords
+- **Dashboard Statistics**: Real-time system statistics and metrics
+
+## 🏗️ System Architecture
+
+```mermaid
+flowchart TD
+    %% Client Layer
+    subgraph "Client Browser" 
+        direction TB
+        CB_CSS["assets/css"]:::frontend
+        CB_JS["assets/js"]:::frontend
+        CB_IMG["assets/images"]:::frontend
+        CB_CHART["lib/chartjs/chart.umd.js"]:::external
+    end
+
+    %% Server Layer
+    subgraph "Web Server & PHP Runtime"
+        direction TB
+        WS_INDEX["index.php"]:::backend
+        WS_LOGIN["login.php"]:::backend
+        WS_LOGOUT["logout.php"]:::backend
+        WS_CONFIG["config/*.php"]:::backend
+        WS_VENDOR["lib/vendor"]:::backend
+        WS_COMPOSER_JSON["lib/composer.json"]:::backend
+        WS_COMPOSER_LOCK["lib/composer.lock"]:::backend
+    end
+
+    %% API Layer
+    subgraph "API Layer"
+        direction TB
+        API_AUTH["api/auth.php"]:::backend
+        API_ADMIN["api/admin/*.php"]:::backend
+        API_FACULTY["api/faculty/*.php"]:::backend
+        API_PLACECOM["api/placecom/*.php"]:::backend
+        API_SHARED["api/shared/*.php"]:::backend
+        API_STUDENT["api/student/*.php"]:::backend
+    end
+
+    %% Database
+    DB["MySQL\n(schema.sql)"]:::database
+
+    %% External Services
+    subgraph "External Libraries & Services"
+        direction TB
+        EXT_PS["PHPSpreadsheet\n(lib/vendor)"]:::external
+        EXT_SMTP["SMTP Service"]:::external
+    end
+
+    %% Connections
+    CB_CSS -->|HTTP Requests| WS_INDEX
+    CB_JS -->|HTTP Requests| WS_INDEX
+    CB_IMG -->|HTTP Requests| WS_INDEX
+    CB_CHART -->|Loads Chart.js| CB_JS
+
+    CB_JS -->|AJAX JSON| API_AUTH
+    CB_JS -->|AJAX JSON| API_ADMIN
+    CB_JS -->|AJAX JSON| API_FACULTY
+    CB_JS -->|AJAX JSON| API_PLACECOM
+    CB_JS -->|AJAX JSON| API_SHARED
+    CB_JS -->|AJAX JSON| API_STUDENT
+
+    API_AUTH -->|SQL Query| DB
+    API_ADMIN -->|SQL Query| DB
+    API_FACULTY -->|SQL Query| DB
+    API_PLACECOM -->|SQL Query| DB
+    API_SHARED -->|SQL Query| DB
+    API_STUDENT -->|SQL Query| DB
+
+    API_ADMIN -->|Excel Import/Export| EXT_PS
+    API_FACULTY -->|Excel Export| EXT_PS
+
+    API_SHARED -->|Email Notifications| EXT_SMTP
+    API_STUDENT -->|Event Logs| API_SHARED
+
+    %% Styles
+    classDef frontend fill:#bbdefb,stroke:#0d47a1,color:#0d47a1;
+    classDef backend fill:#c8e6c9,stroke:#1b5e20,color:#1b5e20;
+    classDef database fill:#ffe0b2,stroke:#e65100,color:#e65100;
+    classDef external fill:#e1bee7,stroke:#4a148c,color:#4a148c;
+```
+
+### Architecture Overview
+- **Frontend Layer**: HTML5, CSS3, and JavaScript (ES6+) with responsive design
+- **Server Layer**: PHP runtime handling HTTP requests and serving content
+- **API Layer**: RESTful API endpoints organized by role (admin, faculty, student, placecom, shared)
+- **Database Layer**: MySQL database with normalized schema for data persistence
+- **External Services**: Excel import/export (PHPSpreadsheet) and email notifications (SMTP)
 
 ## 🛠️ Technology Stack
 
-- **Frontend**: HTML5, CSS3, JavaScript (ES6+)
-- **Backend**: PHP 7.4+
-- **Database**: MySQL/MariaDB
-- **Libraries**:
-  - PHPSpreadsheet (Excel file handling)
-  - Chart.js (Data visualization)
-- **Security**: Session-based authentication, prepared statements for SQL injection prevention
+### Frontend
+- **HTML5** - Semantic markup and form elements
+- **CSS3** - Flexbox, Grid, responsive design with ITCSS architecture
+- **JavaScript (ES6+)** - Vanilla JS with fetch API for AJAX calls
+- **Chart.js** - Data visualization and analytics charts
+
+### Backend
+- **PHP 7.4+** - Server-side logic and business operations
+- **PDO (PHP Data Objects)** - Database abstraction and prepared statements
+- **PHPSpreadsheet** - Excel file import/export functionality
+- **Session Management** - Server-side session handling for authentication
+
+### Database
+- **MySQL 5.7+** or **MariaDB** - Relational database for data persistence
+- **Prepared Statements** - Protection against SQL injection attacks
+
+### Security Features
+- Session-based authentication with role-based access control (RBAC)
+- Prepared SQL statements to prevent injection attacks
+- Input validation and sanitization on all user inputs
+- Password hashing for secure credential storage
+- CORS and CSRF protection mechanisms
 
 ## 📁 Project Structure
 
 ```
-NMIMS_QUIZ_APP/
-├── api/                          # Backend PHP scripts for AJAX calls
-│   ├── admin/                   # Admin-specific API endpoints
-│   ├── faculty/                 # Faculty-specific API endpoints
-│   ├── placecom/               # Placement committee API endpoints
-│   ├── shared/                  # Shared API endpoints
-│   ├── student/                 # Student-specific API endpoints
-│   └── auth.php                 # Authentication handler
-├── assets/                       # Static files
-│   ├── css/                     # Stylesheets
-│   ├── images/                  # Images and icons
-│   ├── js/                      # JavaScript files
-│   └── templates/               # Template files
-│       ├── footer.php          # Footer template
-│       ├── header.php          # Header template
-│       ├── question_template.xlsx  # Excel template for bulk question upload
-│       └── student_template.xlsx   # Excel template for bulk student upload
-├── config/                       # Configuration files
-├── lib/                          # External libraries
-│   ├── chartjs/                 # Chart.js library
-│   ├── vendor/                  # Composer dependencies
-|   ├── composer.json            # Composer configuration
-|   └── composer.lock            # Composer lock file
-├── views/                        # User-facing pages
-│   ├── admin/                   # Admin dashboard and pages
-│   ├── faculty/                 # Faculty dashboard and pages
-│   ├── placecom/               # Placement committee pages
-│   ├── shared/                  # Shared views
-│   └── student/                 # Student dashboard and pages
-├── index.php                     # Application entry point
-├── LICENSE                       # MIT License file
-├── login.php                     # Login page
-├── logout.php                    # Logout handler
-├── README.md                     # This file
-└── schema.sql                    # Database schema
+nmims_quiz_app/
+├── api/                              # Backend API endpoints
+│   ├── auth.php                      # Authentication & login handler
+│   ├── admin/                        # Admin-specific endpoints
+│   │   ├── add_user.php
+│   │   ├── add_course.php
+│   │   ├── add_school.php
+│   │   ├── add_role.php
+│   │   ├── add_specialization.php
+│   │   ├── bulk_assign_specialization.php
+│   │   ├── delete_*.php              # Delete operations
+│   │   ├── get_*.php                 # Get/Fetch operations
+│   │   ├── reset_password.php
+│   │   ├── update_*.php              # Update operations
+│   │   └── upload_students.php
+│   ├── faculty/                      # Faculty-specific endpoints
+│   │   ├── create_quiz.php
+│   │   ├── edit_quiz.php
+│   │   ├── delete_quiz.php
+│   │   ├── upload_questions.php
+│   │   ├── get_quiz_results.php
+│   │   ├── export_results.php
+│   │   ├── get_item_analysis.php
+│   │   ├── get_live_monitoring_data.php
+│   │   └── update_quiz_status.php
+│   ├── placecom/                     # Placement committee endpoints
+│   │   └── get_all_quiz_results.php
+│   ├── shared/                       # Shared endpoints (all roles)
+│   │   ├── get_quiz_status.php
+│   │   ├── get_courses_by_school.php
+│   │   ├── get_batches_by_course.php
+│   │   ├── get_years_by_course.php
+│   │   └── export_all_results.php
+│   └── student/                      # Student-specific endpoints
+│       ├── fetch_exam_questions.php  # Load quiz questions
+│       ├── save_answer.php           # Save individual answer
+│       ├── finish_exam.php           # Submit exam
+│       ├── get_detailed_results.php
+│       ├── export_student_results.php
+│       ├── log_event.php             # Activity logging
+│       └── get_attempt_status.php
+├── assets/                           # Static files
+│   ├── css/
+│   │   └── main.css                  # Consolidated stylesheet (ITCSS architecture)
+│   ├── images/                       # Images and icons
+│   ├── js/
+│   │   └── script.js                 # Merged JS (login + exam logic)
+│   └── templates/
+│       ├── footer.php                # Footer template
+│       ├── header.php                # Header template
+│       ├── question_template.xlsx    # Excel template for bulk question upload
+│       └── student_template.xlsx     # Excel template for bulk user import
+├── config/                           # Configuration files
+│   └── database.php                  # Database connection settings
+├── lib/                              # External libraries & dependencies
+│   ├── chartjs/
+│   │   └── chart.umd.js             # Chart.js library
+│   ├── vendor/                       # Composer dependencies (PHPSpreadsheet, etc.)
+│   ├── composer.json                 # Composer configuration
+│   └── composer.lock                 # Locked dependency versions
+├── views/                            # User-facing view pages
+│   ├── admin/                        # Admin dashboard and management pages
+│   │   ├── dashboard.php
+│   │   ├── user_management.php
+│   │   ├── manage_courses.php
+│   │   ├── manage_schools.php
+│   │   ├── manage_roles.php
+│   │   ├── manage_specializations.php
+│   │   ├── upload_students.php
+│   │   └── system_logs.php
+│   ├── faculty/                      # Faculty pages
+│   │   ├── dashboard.php
+│   │   ├── create_quiz.php
+│   │   ├── manage_quizzes.php
+│   │   ├── edit_question.php
+│   │   ├── evaluate_descriptive.php
+│   │   ├── item_analysis.php
+│   │   └── reports.php
+│   ├── student/                      # Student pages
+│   │   ├── dashboard.php
+│   │   ├── lobby.php                 # Quiz lobby/waiting room
+│   │   ├── exam.php                  # Exam page (main interface)
+│   │   ├── results.php               # Quiz results
+│   │   ├── detailed_results.php
+│   │   ├── export_student_results.php
+│   │   └── disqualified.php
+│   ├── placecom/                     # Placement committee pages
+│   │   ├── dashboard.php
+│   │   └── reports.php
+│   └── shared/                       # Shared pages (all roles)
+│       ├── dashboard.php
+│       └── event_log_report.php
+├── schema.sql                        # Database schema and tables
+├── index.php                         # Main entry point
+├── login.php                         # Login page
+├── logout.php                        # Logout handler
+├── LICENSE                           # MIT License
+└── README.md                         # This documentation
+
 ```
 
 ## 🚀 Installation
 
 ### Prerequisites
 - PHP 7.4 or higher
-- MySQL 5.7 or higher
-- Apache/Nginx web server
+- MySQL 5.7 or higher (MariaDB also supported)
+- Apache/Nginx web server with .htaccess support
 - Composer (for PHP dependencies)
 
-### Steps
+### Setup Steps
 
-1. **Clone the repository**
+1. **Clone or download the repository**
    ```bash
    git clone https://github.com/aarushchaudhary/nm-quiz-app.git
+   cd nmims_quiz_app
+   ```
+
+2. **Install PHP dependencies**
+   ```bash
+   cd lib
+   composer install
+   cd ..
+   ```
+
+3. **Configure database connection**
+   - Edit `config/database.php`
+   - Update database credentials (host, username, password, database name)
+
+4. **Import database schema**
+   ```bash
+   mysql -u your_username -p your_database < schema.sql
+   ```
+
+5. **Set proper file permissions**
+   ```bash
+   chmod 755 .
+   chmod -R 755 assets/
+   chmod -R 755 views/
+   chmod -R 755 api/
+   ```
+
+6. **Place in web root**
+   ```bash
+   # For XAMPP
+   mv nmims_quiz_app /path/to/xampp/htdocs/
+   ```
+
+7. **Access the application**
+   - Navigate to `http://localhost/nmims_quiz_app/`
+   - Default login credentials are set in the database
+
+## 📖 Usage
+
+### For Students
+1. Log in with your credentials
+2. Navigate to available quizzes from the dashboard
+3. Click "Join Quiz" to enter the lobby
+4. Click anywhere on the lobby page to begin the exam
+5. Answer questions and click "Next Question"
+6. Review your answers before final submission
+7. Click "Finish Exam" to submit
+8. View results on the results page
+
+### For Faculty
+1. Log in to access the faculty dashboard
+2. Create a new quiz: Click "Create Quiz" and fill in details
+3. Add questions: Use "Add Question" or bulk upload via Excel
+4. Publish the quiz: Set quiz status to "Active"
+5. Monitor live exams: Use "Live Monitoring" to track student progress
+6. Evaluate answers: Manual evaluation for descriptive questions
+7. Generate reports: Export results and view analytics
+
+### For Administrators
+1. Log in to the admin dashboard
+2. Manage users: Add, edit, or delete student/faculty accounts
+3. Manage academic structure: Schools, courses, specializations, batches
+4. Upload users: Use Excel template for bulk import
+5. View system logs: Monitor all system activities
+6. Reset passwords: Reset user credentials if needed
+
+## 🗄️ Database Schema
+
+Key tables:
+- **users** - User accounts with roles
+- **quizzes** - Quiz definitions and metadata
+- **questions** - Quiz questions with type and options
+- **options** - Answer options for MCQ questions
+- **attempts** - Student quiz attempts and submissions
+- **answers** - Individual student answers per question
+- **event_logs** - System activity and audit logs
+- **schools** - Educational institutions
+- **courses** - Academic courses
+- **specializations** - Student specializations/branches
+
+See `schema.sql` for complete database structure.
+
+## 🔌 API Reference
+
+### Authentication
+- **POST** `/api/auth.php` - Login with username and password
+
+### Student APIs
+- **GET** `/api/student/fetch_exam_questions.php?id=<quiz_id>` - Get quiz questions
+- **POST** `/api/student/save_answer.php` - Save individual answer
+- **POST** `/api/student/finish_exam.php` - Submit exam
+- **GET** `/api/student/get_detailed_results.php` - Get detailed results
+
+### Faculty APIs
+- **POST** `/api/faculty/create_quiz.php` - Create new quiz
+- **POST** `/api/faculty/upload_questions.php` - Bulk upload questions
+- **POST** `/api/faculty/update_quiz_status.php` - Update quiz status
+- **GET** `/api/faculty/get_quiz_results.php` - Get quiz results
+- **GET** `/api/faculty/get_live_monitoring_data.php` - Get live monitoring data
+
+### Admin APIs
+- **POST** `/api/admin/add_user.php` - Create user
+- **POST** `/api/admin/upload_students.php` - Bulk upload users
+- **GET** `/api/admin/get_user_specialization.php` - Get user specialization
+- **POST** `/api/admin/bulk_assign_specialization.php` - Assign specializations
+
+### Shared APIs
+- **GET** `/api/shared/get_quiz_status.php?id=<quiz_id>` - Get quiz status
+- **GET** `/api/shared/get_courses_by_school.php` - Get courses by school
+- **GET** `/api/shared/get_event_logs.php` - Get system event logs
+
+## 🔐 Security
+
+The application implements multiple security measures:
+
+1. **Authentication**: Session-based login system with role validation
+2. **Authorization**: Role-based access control (RBAC) for different user types
+3. **SQL Injection Prevention**: All database queries use prepared statements with parameterized queries
+4. **Input Validation**: Server-side validation of all user inputs
+5. **Password Security**: Passwords hashed using PHP's `password_hash()` function
+6. **Session Management**: Secure session configuration with timeout
+7. **CSRF Protection**: Token-based protection against cross-site requests
+8. **Data Encryption**: Sensitive data encrypted in transit (HTTPS recommended)
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 👨‍💻 Author
+
+**Aarush Chaudhary** - [GitHub Profile](https://github.com/aarushchaudhary)
+
+## 🙏 Acknowledgments
+
+- NMIMS for the educational context and requirements
+- PHPSpreadsheet library for Excel handling
+- Chart.js for data visualization
+- All contributors and testers
+
+## 📧 Support
+
+For issues, questions, or suggestions, please open an issue on [GitHub Issues](https://github.com/aarushchaudhary/nm-quiz-app/issues).
    cd nm-quiz-app
    ```
 

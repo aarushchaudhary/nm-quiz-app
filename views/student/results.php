@@ -1,6 +1,5 @@
 <?php
   $pageTitle = 'Exam Results';
-  $customCSS = 'exam.css';
   require_once '../../assets/templates/header.php';
   require_once '../../config/database.php';
 

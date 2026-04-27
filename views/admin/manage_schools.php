@@ -1,6 +1,5 @@
 <?php
   $pageTitle = 'Manage Schools';
-  $customCSS = 'manage.css';
   require_once '../../assets/templates/header.php';
   require_once '../../config/database.php';
 

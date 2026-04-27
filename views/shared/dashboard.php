@@ -4,7 +4,6 @@
   $roleName = isset($_SESSION['role_name']) ? ucfirst($_SESSION['role_name']) : 'User';
   $pageTitle = $roleName . ' Dashboard';
   
-  $customCSS = 'manage.css';
   require_once '../../assets/templates/header.php';
 
   // --- Authorization Check ---
