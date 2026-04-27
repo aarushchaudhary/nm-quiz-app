@@ -27,7 +27,7 @@ if (isset($_POST['correct_answer_single'])) { // For MCQ (radio button)
 
 // --- Validation ---
 if (!$quiz_id || empty($question_text) || !$question_type_id || !$difficulty_id || $points === false) {
-    header('Location: /nmims_quiz_app/views/faculty/view_quiz.php?id=' . $quiz_id . '&error=Missing+required+fields.');
+    redirect('views/faculty/view_quiz.php?id=' . $quiz_id . '&error=Missing+required+fields.');
     exit();
 }
 
@@ -54,11 +54,11 @@ try {
     }
 
     $pdo->commit();
-    header('Location: /nmims_quiz_app/views/faculty/view_quiz.php?id=' . $quiz_id . '&success=Question+added+successfully.');
+    redirect('views/faculty/view_quiz.php?id=' . $quiz_id . '&success=Question+added+successfully.');
 
 } catch (Exception $e) {
     $pdo->rollBack();
     error_log("Manual question add failed: " . $e->getMessage());
-    header('Location: /nmims_quiz_app/views/faculty/view_quiz.php?id=' . $quiz_id . '&error=' . urlencode('Database error occurred.'));
+    redirect('views/faculty/view_quiz.php?id=' . $quiz_id . '&error=' . urlencode('Database error occurred.'));
 }
 exit();

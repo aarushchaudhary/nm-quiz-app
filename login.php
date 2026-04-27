@@ -20,7 +20,7 @@
   </form>
 </div>
 
-<script src="/nmims_quiz_app/assets/js/script.js" defer></script>
+<script src="<?= get_asset_url('assets/js/script.js') ?>" defer></script>
 
 <?php
   require_once 'assets/templates/footer.php';

@@ -6,8 +6,11 @@ const path = require('path');
 const url = require('url');
 
 // --- Configuration ---
-// IMPORTANT: Replace this with the actual base URL of your quiz application
-const BASE_URL = 'http://localhost/nmims_quiz_app/';
+// IMPORTANT: Update BASE_URL based on your deployment:
+// - Built-in server (port 8080): 'http://localhost:8080/'
+// - XAMPP subdirectory: 'http://localhost/nmims_quiz_app/'
+// - Production domain: 'https://your-domain.com/'
+const BASE_URL = 'http://localhost:8080/';
 
 // Define allowed URL patterns
 const ALLOWED_URL_PATTERNS = [

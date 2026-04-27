@@ -5,7 +5,7 @@
 
   // --- Authorization Check (Allows any non-student role) ---
   if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] == 4) {
-      header('Location: /nmims_quiz_app/login.php');
+      header('Location: login.php');
       exit();
   }
 
@@ -86,6 +86,7 @@
 </div>
 
 <script>
+const BASE_URL = '<?= get_base_url() ?>';
 document.addEventListener('DOMContentLoaded', function() {
     // --- Cascading Dropdown Logic ---
     const schoolSelect = document.getElementById('school');
@@ -99,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         courseSelect.innerHTML = '<option value="">Loading...</option>';
         try {
-            const response = await fetch(`/nmims_quiz_app/api/shared/get_courses_by_school.php?school_id=${schoolId}`);
+            const response = await fetch(BASE_URL + `api/shared/get_courses_by_school.php?school_id=${schoolId}`);
             const courses = await response.json();
             courseSelect.innerHTML = '<option value="">All Courses</option>';
             courses.forEach(course => {
@@ -130,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         placeholder.textContent = 'Loading logs...';
         try {
-            const response = await fetch(`/nmims_quiz_app/api/shared/get_event_logs.php?quiz_id=${quizId}`);
+            const response = await fetch(BASE_URL + `api/shared/get_event_logs.php?quiz_id=${quizId}`);
             const logs = await response.json();
             if (!response.ok) throw new Error(logs.error || 'Failed to fetch logs.');
 

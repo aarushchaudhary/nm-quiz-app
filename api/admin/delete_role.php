@@ -7,7 +7,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 1) { exit('Access De
 $role_id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
 
 if (!$role_id) {
-    header('Location: /nmims_quiz_app/views/admin/manage_roles.php?error=Invalid+ID.');
+    redirect('views/admin/manage_roles.php?error=Invalid+ID.');
     exit();
 }
 
@@ -22,8 +22,8 @@ try {
     // If no users have this role, proceed with deletion
     $stmt_delete = $pdo->prepare("DELETE FROM roles WHERE id = ?");
     $stmt_delete->execute([$role_id]);
-    header('Location: /nmims_quiz_app/views/admin/manage_roles.php?success=Role+deleted+successfully.');
+    redirect('views/admin/manage_roles.php?success=Role+deleted+successfully.');
 
 } catch (Exception $e) {
-    header('Location: /nmims_quiz_app/views/admin/manage_roles.php?error=' . urlencode($e->getMessage()));
+    redirect('views/admin/manage_roles.php?error=' . urlencode($e->getMessage()));
 }

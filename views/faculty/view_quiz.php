@@ -6,7 +6,7 @@
 
   // --- Authorization & Input Check ---
   if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 2) {
-      header('Location: /nmims_quiz_app/login.php');
+      redirect('login.php');
       exit();
   }
   if (!isset($_GET['id']) || !filter_var($_GET['id'], FILTER_VALIDATE_INT)) {
@@ -42,7 +42,7 @@
 
     <div class="section-box">
         <h3>Add Question Manually</h3>
-        <form action="/nmims_quiz_app/api/faculty/add_manual_question.php" method="POST" class="manual-add-form">
+        <form action="<?= get_base_url() ?>api/faculty/add_manual_question.php" method="POST" class="manual-add-form">
             <input type="hidden" name="quiz_id" value="<?php echo $quiz_id; ?>">
             
             <div class="form-group">
@@ -80,7 +80,7 @@
 
     <div class="section-box">
         <h3>Upload Questions via Excel</h3>
-        <form action="/nmims_quiz_app/api/faculty/upload_questions.php" method="POST" enctype="multipart/form-data" class="upload-form">
+        <form action="<?= get_base_url() ?>api/faculty/upload_questions.php" method="POST" enctype="multipart/form-data" class="upload-form">
             <input type="hidden" name="quiz_id" value="<?php echo $quiz_id; ?>">
             <div class="form-group">
                 <label for="question_file">Select Excel File (.xlsx)</label>
@@ -90,7 +90,7 @@
                 <button type="submit" class="button-red" style="width: auto; padding: 12px 40px;">Upload File</button>
             </div>
             <p style="text-align:center; margin-top:15px; font-size: 0.9em;">
-                Need a template? <a href="/nmims_quiz_app/assets/templates/question_template.xlsx" download>Download Excel Template</a>
+                Need a template? <a href="<?= get_asset_url('assets/templates/question_template.xlsx') ?>" download>Download Excel Template</a>
             </p>
         </form>
     </div>

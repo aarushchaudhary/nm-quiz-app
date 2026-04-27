@@ -86,14 +86,14 @@ try {
     $quiz_id = $pdo->lastInsertId();
 
     // Redirect to the view/edit page for the new quiz
-    header('Location: /nmims_quiz_app/views/faculty/view_quiz.php?id=' . $quiz_id . '&created=true');
+    redirect('views/faculty/view_quiz.php?id=' . $quiz_id . '&created=true');
     exit();
 
 } catch (PDOException $e) {
     // In a real app, you would log this error.
     // For now, redirect with a generic error message.
     error_log('Quiz creation failed: ' . $e->getMessage());
-    header('Location: /nmims_quiz_app/views/faculty/create_quiz.php?error=db_error');
+    redirect('views/faculty/create_quiz.php?error=db_error');
     exit();
 }
 ?>

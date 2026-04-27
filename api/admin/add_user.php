@@ -20,7 +20,7 @@ $full_name = trim($_POST['full_name']);
 
 // --- Validation ---
 if (empty($username) || empty($password) || empty($full_name) || !$role_id) {
-    header('Location: /nmims_quiz_app/views/admin/add_user.php?error=missing_fields');
+    redirect('views/admin/add_user.php?error=missing_fields');
     exit();
 }
 
@@ -60,15 +60,15 @@ try {
     }
 
     $pdo->commit();
-    header('Location: /nmims_quiz_app/views/admin/user_management.php?success=User+created+successfully.');
+    redirect('views/admin/user_management.php?success=User+created+successfully.');
 
 } catch (PDOException $e) {
     $pdo->rollBack();
     if ($e->getCode() == 23000) {
-        header('Location: /nmims_quiz_app/views/admin/add_user.php?error=username_exists');
+        redirect('views/admin/add_user.php?error=username_exists');
     } else {
         error_log("Add user failed: " . $e->getMessage());
-        header('Location: /nmims_quiz_app/views/admin/add_user.php?error=db_error');
+        redirect('views/admin/add_user.php?error=db_error');
     }
 }
 exit();

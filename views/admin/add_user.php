@@ -6,7 +6,7 @@
 
   // --- Authorization Check ---
   if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 1) {
-      header('Location: /nmims_quiz_app/login.php');
+      header('Location: login.php');
       exit();
   }
 
@@ -28,7 +28,7 @@
 
 <div class="form-container" style="max-width: 800px;">
     <h2>Create New User Account</h2>
-    <form action="/nmims_quiz_app/api/admin/add_user.php" method="POST" id="add-user-form">
+    <form action="<?= get_base_url() ?>api/admin/add_user.php" method="POST" id="add-user-form">
         
         <div class="form-group">
             <label for="role_id">User Role</label>
@@ -113,6 +113,7 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
+const BASE_URL = '<?= get_base_url() ?>';
 document.addEventListener('DOMContentLoaded', function() {
     $('#specializations').select2({
         placeholder: "Select one or more specializations",
@@ -150,7 +151,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            const response = await fetch(`/nmims_quiz_app/api/shared/get_courses_by_school.php?school_id=${schoolId}`);
+            const response = await fetch(BASE_URL + `api/shared/get_courses_by_school.php?school_id=${schoolId}`);
             const courses = await response.json();
             
             courseSelect.innerHTML = '<option value="" disabled selected>-- Select a Course --</option>';

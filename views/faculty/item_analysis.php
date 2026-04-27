@@ -16,6 +16,7 @@
 </div>
 
 <script>
+const BASE_URL = '<?= get_base_url() ?>';
 document.addEventListener('DOMContentLoaded', async function() {
     const quizId = <?php echo json_encode($quiz_id); ?>;
     const contentDiv = document.getElementById('analysis-content');
@@ -26,7 +27,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     try {
-        const response = await fetch(`/nmims_quiz_app/api/faculty/get_item_analysis.php?quiz_id=${quizId}`);
+        const response = await fetch(BASE_URL + `api/faculty/get_item_analysis.php?quiz_id=${quizId}`);
         if (!response.ok) throw new Error('Failed to load analysis data.');
         const analysisData = await response.json();
 

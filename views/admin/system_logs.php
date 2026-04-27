@@ -6,7 +6,7 @@
 
   // --- Authorization Check for Admin ---
   if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 1) {
-      header('Location: /nmims_quiz_app/login.php');
+      header('Location: login.php');
       exit();
   }
 
@@ -169,6 +169,7 @@
 </div>
 
 <script>
+const BASE_URL = '<?= get_base_url() ?>';
 document.addEventListener('DOMContentLoaded', function() {
     // --- Cascading Dropdown Logic ---
     const schoolSelect = document.getElementById('school');
@@ -182,7 +183,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         courseSelect.innerHTML = '<option value="">Loading...</option>';
         try {
-            const response = await fetch(`/nmims_quiz_app/api/shared/get_courses_by_school.php?school_id=${schoolId}`);
+            const response = await fetch(BASE_URL + `api/shared/get_courses_by_school.php?school_id=${schoolId}`);
             const courses = await response.json();
             courseSelect.innerHTML = '<option value="">All Courses</option>';
             courses.forEach(course => {

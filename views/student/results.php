@@ -5,7 +5,7 @@
 
   // --- Authorization & Input Check ---
   if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 4 || !isset($_GET['attempt_id'])) {
-      header('Location: /nmims_quiz_app/login.php');
+      header('Location: login.php');
       exit();
   }
 
@@ -92,12 +92,12 @@
 
     <div class="button-group" style="justify-content: center; margin-top: 20px; gap: 15px;">
         <a href="detailed_results.php?attempt_id=<?php echo htmlspecialchars($attempt_id); ?>" class="button-red" style="width: auto; background-color: #17a2b8;">View Detailed Breakdown</a>
-        <a href="/nmims_quiz_app/api/student/export_student_results.php?attempt_id=<?php echo htmlspecialchars($attempt_id); ?>" class="button-red" style="width: auto; background-color: #28a745;">Download Excel</a>
+        <a href="<?= get_base_url() ?>api/student/export_student_results.php?attempt_id=<?php echo htmlspecialchars($attempt_id); ?>" class="button-red" style="width: auto; background-color: #28a745;">Download Excel</a>
     </div>
     <a href="dashboard.php" class="button-red" style="width: auto; padding: 12px 30px; margin-top: 20px; text-decoration: none;">Back to Dashboard</a>
 </div>
 
-<script src="/nmims_quiz_app/lib/chartjs/chart.umd.js"></script>
+<script src="<?= get_asset_url('lib/chartjs/chart.umd.js') ?>"></script>
 <script>
 // Chart.js initialization script
 document.addEventListener('DOMContentLoaded', function() {

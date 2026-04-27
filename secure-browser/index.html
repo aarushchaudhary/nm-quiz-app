@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <!-- https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP -->
     <!-- Basic CSP to restrict resource loading -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src http://localhost/nmims_quiz_app/">
+    <!-- Update connect-src based on your deployment: localhost:8080 for built-in server, localhost/nmims_quiz_app for XAMPP -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src http://localhost:8080/">
     <title>Secure Quiz Browser</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #f0f0f0; }

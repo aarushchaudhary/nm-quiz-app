@@ -5,7 +5,7 @@
 
   // --- Authorization Check ---
   if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 2) {
-      header('Location: /nmims_quiz_app/login.php');
+      header('Location: login.php');
       exit();
   }
 
@@ -33,7 +33,7 @@
 
 <div class="form-container">
   <h2>Quiz Setup</h2>
-  <form action="/nmims_quiz_app/api/faculty/create_quiz.php" method="POST">
+  <form action="<?= get_base_url() ?>api/faculty/create_quiz.php" method="POST">
     
     <div class="form-group">
       <label for="title">Quiz Title</label>
@@ -141,6 +141,7 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
+const BASE_URL = '<?= get_base_url() ?>';
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize Select2 on the student dropdowns
     $('.student-select').select2({
@@ -162,7 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!schoolId) return;
 
-        const response = await fetch(`/nmims_quiz_app/api/shared/get_courses_by_school.php?school_id=${schoolId}`);
+        const response = await fetch(BASE_URL + `api/shared/get_courses_by_school.php?school_id=${schoolId}`);
         const courses = await response.json();
         
         courseSelect.innerHTML = '<option value="" disabled selected>-- Select a Course --</option>';
@@ -180,7 +181,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!courseId) return;
 
-        const response = await fetch(`/nmims_quiz_app/api/shared/get_years_by_course.php?course_id=${courseId}`);
+        const response = await fetch(BASE_URL + `api/shared/get_years_by_course.php?course_id=${courseId}`);
         const years = await response.json();
         
         yearSelect.innerHTML = '<option value="" disabled selected>-- Select a Year --</option>';

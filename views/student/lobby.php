@@ -6,7 +6,7 @@
 
   // --- Authorization & Input Check ---
   if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 4) {
-      header('Location: /nmims_quiz_app/login.php');
+      header('Location: login.php');
       exit();
   }
   if (!isset($_GET['id']) || !filter_var($_GET['id'], FILTER_VALIDATE_INT)) {
@@ -54,13 +54,14 @@
 </div>
 
 <script>
+const BASE_URL = '<?= get_base_url() ?>';
 document.addEventListener('DOMContentLoaded', function() {
     const quizId = <?php echo json_encode($quiz_id); ?>;
     const statusText = document.getElementById('status-text');
 
     async function checkQuizStatus() {
         try {
-            const response = await fetch(`/nmims_quiz_app/api/shared/get_quiz_status.php?id=${quizId}`);
+            const response = await fetch(BASE_URL + `api/shared/get_quiz_status.php?id=${quizId}`);
             if (!response.ok) throw new Error('Network response was not ok');
             const data = await response.json();
 

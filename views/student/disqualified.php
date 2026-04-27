@@ -18,6 +18,7 @@
 </div>
 
 <script>
+const BASE_URL = '<?= get_base_url() ?>';
 document.addEventListener('DOMContentLoaded', function() {
     const attemptId = <?php echo json_encode($attempt_id); ?>;
     if (!attemptId) {
@@ -27,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function checkResumeStatus() {
         try {
-            const response = await fetch(`/nmims_quiz_app/api/student/get_attempt_status.php?id=${attemptId}`);
+            const response = await fetch(BASE_URL + `api/student/get_attempt_status.php?id=${attemptId}`);
             const data = await response.json();
 
             if (data.can_resume) {

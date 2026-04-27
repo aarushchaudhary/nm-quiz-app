@@ -1,21 +1,51 @@
 <?php
-/*
+/**
  * database.php
- * This file handles the connection to the MySQL/MariaDB database using PDO.
- * PDO (PHP Data Objects) is used as it provides a secure way to access databases
- * and prevents SQL injection attacks through prepared statements.
+ * Database connection configuration for NMIMS Quiz App
+ * 
+ * PDO (PHP Data Objects) is used for secure database access
+ * with prepared statements to prevent SQL injection.
  */
 
-// --- Database Credentials ---
-// Replace with your actual database details.
-// For a standard XAMPP installation, the user is 'root' and there is no password.
-define('DB_HOST', '127.0.0.1'); // Or 'localhost'
+// Suppress errors and warnings to prevent corrupting JSON responses
+// Errors will be logged instead
+error_reporting(E_ALL);
+ini_set('display_errors', 0);  // Don't display errors in output
+ini_set('log_errors', 1);       // Log errors to error log
+
+// Set up error handler to output JSON for API endpoints
+set_error_handler(function($errno, $errstr, $errfile, $errline) {
+    error_log("PHP Error [$errno]: $errstr in $errfile on line $errline");
+    if (php_sapi_name() !== 'cli') {  // Only affect web requests, not CLI
+        header('Content-Type: application/json', true);
+        http_response_code(500);
+        echo json_encode(['error' => 'An internal server error occurred. Please try again.']);
+        exit;
+    }
+    return false;  // Let PHP's internal error handler also run
+});
+
+// Set up exception handler to output JSON
+set_exception_handler(function($e) {
+    error_log("Exception: " . $e->getMessage());
+    header('Content-Type: application/json', true);
+    http_response_code(500);
+    echo json_encode(['error' => 'An internal server error occurred. Please try again.']);
+    exit;
+});
+
+// Require base URL configuration
+require_once __DIR__ . '/base_url.php';
+
+// --- MariaDB/MySQL Credentials ---
+define('DB_HOST', '127.0.0.1');
+define('DB_PORT', '3306');
 define('DB_NAME', 'nmims_quiz_app');
 define('DB_USER', 'root');
-define('DB_PASS', '');
+define('DB_PASS', '123456');
 
 // --- Data Source Name (DSN) ---
-$dsn = 'mysql:host=' . DB_HOST . ';dbname=' . DB_NAME . ';charset=utf8mb4';
+$dsn = 'mysql:host=' . DB_HOST . ':' . DB_PORT . ';dbname=' . DB_NAME . ';charset=utf8mb4';
 
 // --- PDO Connection Options ---
 $options = [
@@ -29,13 +59,11 @@ $options = [
 
 // --- Create PDO Instance ---
 try {
-    // Attempt to create a new PDO instance to connect to the database
     $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
 } catch (\PDOException $e) {
-    // If the connection fails, stop the script and show an error message.
-    // In a production environment, you would log this error instead of showing it to the user.
     error_log("Database Connection Error: " . $e->getMessage());
-    // For the user, show a generic error and redirect
-    header('Location: /nmims_quiz_app/login.php?error=db_error');
-    exit('Database connection failed. Please check server logs.');
+    http_response_code(500);
+    header('Content-Type: application/json');
+    echo json_encode(['error' => 'Database connection failed. Please check server configuration.']);
+    exit;
 }

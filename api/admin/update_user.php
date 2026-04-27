@@ -21,7 +21,7 @@ $password = $_POST['password'];
 
 // --- Validation ---
 if (!$user_id || !$role_id || empty($username) || empty($full_name)) {
-    header('Location: /nmims_quiz_app/views/admin/user_management.php?error=missing_fields');
+    redirect('views/admin/user_management.php?error=missing_fields');
     exit();
 }
 
@@ -32,7 +32,7 @@ try {
     $stmt_check->execute([$username, $user_id]);
     if ($stmt_check->fetch()) {
         // If a user is found, the username is already taken. Redirect with an error.
-        header('Location: /nmims_quiz_app/views/admin/edit_user.php?id=' . $user_id . '&error=username_exists');
+        redirect('views/admin/edit_user.php?id=' . $user_id . '&error=username_exists');
         exit();
     }
 
@@ -67,11 +67,11 @@ try {
     }
 
     $pdo->commit();
-    header('Location: /nmims_quiz_app/views/admin/user_management.php?success=User+updated+successfully.');
+    redirect('views/admin/user_management.php?success=User+updated+successfully.');
 
 } catch (PDOException $e) {
     $pdo->rollBack();
     error_log("Update user failed: " . $e->getMessage());
-    header('Location: /nmims_quiz_app/views/admin/edit_user.php?id=' . $user_id . '&error=db_error');
+    redirect('views/admin/edit_user.php?id=' . $user_id . '&error=db_error');
 }
 exit();

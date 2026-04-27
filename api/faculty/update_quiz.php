@@ -6,7 +6,7 @@ require_once '../../config/database.php';
 // --- Authorization Check ---
 session_start();
 if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 2) {
-    header('Location: /nmims_quiz_app/login.php?error=unauthorized');
+    redirect('login.php?error=unauthorized');
     exit();
 }
 
@@ -85,13 +85,13 @@ try {
     ]);
 
     // Redirect back to the view page with a success message
-    header('Location: /nmims_quiz_app/views/faculty/view_quiz.php?id=' . $quiz_id . '&updated=true');
+    redirect('views/faculty/view_quiz.php?id=' . $quiz_id . '&updated=true');
     exit();
 
 } catch (PDOException $e) {
     // In a real application, you would log this error.
     error_log('Quiz update failed: ' . $e->getMessage());
-    header('Location: /nmims_quiz_app/views/faculty/edit_quiz.php?id=' . $quiz_id . '&error=db_error');
+    redirect('views/faculty/edit_quiz.php?id=' . $quiz_id . '&error=db_error');
     exit();
 }
 ?>

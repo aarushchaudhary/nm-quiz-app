@@ -5,7 +5,7 @@
 
   // --- Authorization & Input Check ---
   if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 1 || !isset($_GET['id'])) {
-      header('Location: /nmims_quiz_app/login.php');
+      header('Location: login.php');
       exit();
   }
   $user_id = filter_var($_GET['id'], FILTER_VALIDATE_INT);
@@ -52,7 +52,7 @@
 <div class="form-container" style="max-width: 800px;">
     <h2>Edit User: <?php echo htmlspecialchars($full_name); ?></h2>
     
-    <form id="edit-user-form" action="/nmims_quiz_app/api/admin/update_user.php" method="POST">
+    <form id="edit-user-form" action="<?= get_base_url() ?>api/admin/update_user.php" method="POST">
         <input type="hidden" name="user_id" value="<?php echo $user['id']; ?>">
         <input type="hidden" name="role_id" value="<?php echo $user['role_id']; ?>">
         
@@ -108,6 +108,7 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
+const BASE_URL = '<?= get_base_url() ?>';
 document.addEventListener('DOMContentLoaded', function() {
     const specializationsSelect = document.getElementById('specializations');
     if (specializationsSelect) {
@@ -119,7 +120,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const userId = <?php echo $user_id; ?>;
 
         // Fetch and pre-select the student's current specializations
-        fetch(`/nmims_quiz_app/api/admin/get_user_specializations.php?user_id=${userId}`)
+        fetch(BASE_URL + `api/admin/get_user_specializations.php?user_id=${userId}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.specializations) {
@@ -156,7 +157,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (result.success && specializationsSelect) {
             const selectedSpecializations = $('#specializations').val();
             
-            await fetch('/nmims_quiz_app/api/admin/assign_specialization.php', {
+            await fetch('api/admin/assign_specialization.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

@@ -6,7 +6,7 @@
 
   // --- Authorization Check ---
   if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 2) {
-      header('Location: /nmims_quiz_app/login.php');
+      header('Location: login.php');
       exit();
   }
   $faculty_id = $_SESSION['user_id'];
@@ -99,6 +99,7 @@
 </div>
 
 <script>
+const BASE_URL = '<?= get_base_url() ?>';
 document.addEventListener('DOMContentLoaded', function() {
     // --- Cascading Dropdown Logic ---
     const schoolSelect = document.getElementById('school');
@@ -108,7 +109,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!schoolId) { courseSelect.innerHTML = '<option value="">All Courses</option>'; return; }
         courseSelect.innerHTML = '<option value="">Loading...</option>';
         try {
-            const response = await fetch(`/nmims_quiz_app/api/shared/get_courses_by_school.php?school_id=${schoolId}`);
+            const response = await fetch(BASE_URL + `api/shared/get_courses_by_school.php?school_id=${schoolId}`);
             const courses = await response.json();
             courseSelect.innerHTML = '<option value="">All Courses</option>';
             courses.forEach(course => {
@@ -139,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         placeholder.textContent = 'Loading report...';
         try {
-            const response = await fetch(`/nmims_quiz_app/api/faculty/get_quiz_results.php?quiz_id=${quizId}`);
+            const response = await fetch(BASE_URL + `api/faculty/get_quiz_results.php?quiz_id=${quizId}`);
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'Failed to fetch results.');
             
@@ -165,7 +166,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             placeholder.style.display = 'none';
             reportContent.style.display = 'block';
-            exportBtn.href = `/nmims_quiz_app/api/faculty/export_results.php?quiz_id=${quizId}`;
+            const BASE_URL = '<?= get_base_url() ?>';
+            exportBtn.href = `${BASE_URL}api/faculty/export_results.php?quiz_id=${quizId}`;
             evaluateBtn.href = `evaluate_descriptive.php?quiz_id=${quizId}`;
             analysisBtn.href = `item_analysis.php?quiz_id=${quizId}`;
             [exportBtn, evaluateBtn, analysisBtn].forEach(btn => btn.style.display = 'inline-block');

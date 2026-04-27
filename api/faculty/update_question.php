@@ -25,7 +25,7 @@ $correct_answers = $_POST['correct_answers'] ?? [];
 
 // --- Validation ---
 if (!$question_id || !$quiz_id || empty($question_text) || $points === false) {
-    header('Location: /nmims_quiz_app/views/faculty/question_view.php?quiz_id=' . $quiz_id . '&error=missing_fields');
+    redirect('views/faculty/question_view.php?quiz_id=' . $quiz_id . '&error=missing_fields');
     exit();
 }
 
@@ -50,11 +50,11 @@ try {
     }
 
     $pdo->commit();
-    header('Location: /nmims_quiz_app/views/faculty/question_view.php?quiz_id=' . $quiz_id . '&success=Question+updated+successfully.');
+    redirect('views/faculty/question_view.php?quiz_id=' . $quiz_id . '&success=Question+updated+successfully.');
 
 } catch (PDOException $e) {
     $pdo->rollBack();
     error_log("Update question failed: " . $e->getMessage());
-    header('Location: /nmims_quiz_app/views/faculty/edit_question.php?id=' . $question_id . '&error=db_error');
+    redirect('views/faculty/edit_question.php?id=' . $question_id . '&error=db_error');
 }
 exit();

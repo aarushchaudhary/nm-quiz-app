@@ -5,7 +5,7 @@
 
   // --- Authorization Check ---
   if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 1) {
-      header('Location: /nmims_quiz_app/login.php');
+      header('Location: login.php');
       exit();
   }
 ?>
@@ -39,7 +39,7 @@
             </p>
         </div>
 
-        <form action="/nmims_quiz_app/api/admin/upload_students.php" method="POST" enctype="multipart/form-data" class="upload-form">
+        <form action="<?= get_base_url() ?>api/admin/upload_students.php" method="POST" enctype="multipart/form-data" class="upload-form">
             <div class="form-group">
                 <label for="student_file">Select Excel file to upload:</label>
                 <input type="file" id="student_file" name="student_file" accept=".xlsx, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required style="padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
@@ -47,7 +47,7 @@
             <button type="submit" class="button-red">Upload and Create Students</button>
             
             <p style="text-align:center; margin-top:15px; font-size: 0.9em;">
-                Need the format? <a href="/nmims_quiz_app/assets/templates/student_template.xlsx" download>Download New Excel Template</a>
+                Need the format? <a href="<?= get_asset_url('assets/templates/student_template.xlsx') ?>" download>Download New Excel Template</a>
             </p>
         </form>
     </div>

@@ -6,7 +6,7 @@
 
   // --- Authorization Check ---
   if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 4) {
-      header('Location: /nmims_quiz_app/login.php');
+      header('Location: login.php');
       exit();
   }
   

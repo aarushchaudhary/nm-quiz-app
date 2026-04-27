@@ -6,7 +6,7 @@
 
   // --- Authorization & Input Check ---
   if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 2) {
-      header('Location: /nmims_quiz_app/login.php');
+      header('Location: login.php');
       exit();
   }
   if (!isset($_GET['id']) || !filter_var($_GET['id'], FILTER_VALIDATE_INT)) {
@@ -72,6 +72,7 @@
 </div>
 
 <script>
+const BASE_URL = '<?= get_base_url() ?>';
 document.addEventListener('DOMContentLoaded', function() {
     const quizId = <?php echo json_encode($quiz_id); ?>;
     const studentListBody = document.getElementById('student-list-body');
@@ -88,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function() {
         currentLimit = limit; // New: Update currentLimit
         try {
             // Modified: Added limit to the fetch URL
-            const response = await fetch(`/nmims_quiz_app/api/faculty/get_live_monitoring_data.php?id=${quizId}&page=${page}&limit=${limit}`);
+            const response = await fetch(BASE_URL + `api/faculty/get_live_monitoring_data.php?id=${quizId}&page=${page}&limit=${limit}`);
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'Failed to fetch data');
             
@@ -185,7 +186,7 @@ document.addEventListener('DOMContentLoaded', function() {
             button.disabled = true;
             button.textContent = '...';
             try {
-                const response = await fetch('/nmims_quiz_app/api/faculty/reenable_student.php', {
+                const response = await fetch('api/faculty/reenable_student.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ attempt_id: attemptId })
@@ -209,7 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
             e.target.disabled = true;
             e.target.textContent = 'Updating...';
             try {
-                const response = await fetch('/nmims_quiz_app/api/faculty/update_quiz_status.php', {
+                const response = await fetch('api/faculty/update_quiz_status.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ quiz_id: quizId, new_status_id: newStatusId })

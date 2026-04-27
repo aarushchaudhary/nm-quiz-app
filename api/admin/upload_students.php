@@ -11,11 +11,11 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 // --- Authorization & File Check ---
 if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 1) {
-    header('Location: /nmims_quiz_app/views/admin/upload_students.php?error=true&message=Unauthorized+access.');
+    redirect('views/admin/upload_students.php?error=true&message=Unauthorized+access.');
     exit();
 }
 if (!isset($_FILES['student_file']) || $_FILES['student_file']['error'] !== UPLOAD_ERR_OK) {
-    header('Location: /nmims_quiz_app/views/admin/upload_students.php?error=true&message=File+upload+failed.');
+    redirect('views/admin/upload_students.php?error=true&message=File+upload+failed.');
     exit();
 }
 
@@ -107,12 +107,12 @@ try {
     }
     $_SESSION['upload_errors'] = $errorMessages;
 
-    header('Location: /nmims_quiz_app/views/admin/upload_students.php?success=true&message=' . urlencode($final_message));
+    redirect('views/admin/upload_students.php?success=true&message=' . urlencode($final_message));
 
 } catch (Exception $e) {
     $pdo->rollBack();
     error_log("Student upload failed: " . $e->getMessage());
-    header('Location: /nmims_quiz_app/views/admin/upload_students.php?error=true&message=' . urlencode('A critical error occurred: ' . $e->getMessage()));
+    redirect('views/admin/upload_students.php?error=true&message=' . urlencode('A critical error occurred: ' . $e->getMessage()));
 }
 exit();
 ?>

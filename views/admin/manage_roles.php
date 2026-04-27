@@ -5,7 +5,7 @@
 
   // --- Authorization Check ---
   if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 1) {
-      header('Location: /nmims_quiz_app/login.php');
+      header('Location: login.php');
       exit();
   }
 
@@ -26,7 +26,7 @@
     
     <div class="section-box">
         <h3>Add New Role</h3>
-        <form action="/nmims_quiz_app/api/admin/add_role.php" method="POST" style="display:flex; gap: 15px;">
+        <form action="<?= get_base_url() ?>api/admin/add_role.php" method="POST" style="display:flex; gap: 15px;">
             <input type="text" name="role_name" class="input-field" placeholder="Enter new role name (e.g., observer)" required style="flex-grow:1;">
             <button type="submit" class="button-red" style="width:auto;">Add Role</button>
         </form>
@@ -42,7 +42,7 @@
                     <td><?php echo htmlspecialchars(ucfirst($role['name'])); ?></td>
                     <td class="action-buttons" style="flex-direction:row;">
                         <?php if (!in_array($role['name'], ['admin', 'faculty', 'student', 'placement'])): // Prevent deleting core roles ?>
-                        <a href="/nmims_quiz_app/api/admin/delete_role.php?id=<?php echo $role['id']; ?>" class="btn-delete" onclick="return confirm('Are you sure you want to delete this role?')" style="background-color:#dc3545; color:white; border:none; padding: 8px 12px; font-size: 14px; border-radius: 6px; cursor:pointer;">Delete</a>
+                        <a href="<?= get_base_url() ?>api/admin/delete_role.php?id=<?php echo $role['id']; ?>" class="btn-delete" onclick="return confirm('Are you sure you want to delete this role?')" style="background-color:#dc3545; color:white; border:none; padding: 8px 12px; font-size: 14px; border-radius: 6px; cursor:pointer;">Delete</a>
                         <?php else: ?>
                             <span style="color:#999;">Core Role</span>
                         <?php endif; ?>

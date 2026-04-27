@@ -8,7 +8,7 @@
 
   // --- Authorization Check ---
   if (!isset($_SESSION['user_id'])) {
-      header('Location: /nmims_quiz_app/login.php');
+      header('Location: login.php');
       exit();
   }
   

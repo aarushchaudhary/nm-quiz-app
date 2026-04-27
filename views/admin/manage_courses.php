@@ -5,7 +5,7 @@
 
   // --- Authorization Check ---
   if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 1) {
-      header('Location: /nmims_quiz_app/login.php');
+      header('Location: login.php');
       exit();
   }
 
@@ -33,7 +33,7 @@
     
     <div class="section-box">
         <h3>Add New Course</h3>
-        <form action="/nmims_quiz_app/api/admin/add_course.php" method="POST" class="form-container" style="padding:0; box-shadow:none;">
+        <form action="<?= get_base_url() ?>api/admin/add_course.php" method="POST" class="form-container" style="padding:0; box-shadow:none;">
             <div class="form-row">
                 <div class="form-group">
                     <label for="course_name">Course Name</label>
@@ -68,7 +68,7 @@
                     <td><?php echo htmlspecialchars($course['code']); ?></td>
                     <td><?php echo htmlspecialchars($course['school_name']); ?></td>
                     <td class="action-buttons" style="flex-direction:row;">
-                        <a href="/nmims_quiz_app/api/admin/delete_course.php?id=<?php echo $course['id']; ?>" class="btn-delete" onclick="return confirm('Are you sure you want to delete this course?')" style="background-color:#dc3545; color:white; border:none; padding: 8px 12px; font-size: 14px; border-radius: 6px; cursor:pointer;">Delete</a>
+                        <a href="<?= get_base_url() ?>api/admin/delete_course.php?id=<?php echo $course['id']; ?>" class="btn-delete" onclick="return confirm('Are you sure you want to delete this course?')" style="background-color:#dc3545; color:white; border:none; padding: 8px 12px; font-size: 14px; border-radius: 6px; cursor:pointer;">Delete</a>
                     </td>
                 </tr>
             <?php endforeach; ?>

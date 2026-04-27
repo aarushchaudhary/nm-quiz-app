@@ -21,13 +21,13 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user_id']) || $_S
 
 // --- File and Input Validation ---
 if (!isset($_FILES['question_file']) || $_FILES['question_file']['error'] !== UPLOAD_ERR_OK || !isset($_POST['quiz_id'])) {
-    header('Location: /nmims_quiz_app/views/faculty/view_quiz.php?id=' . ($_POST['quiz_id'] ?? '') . '&error=File+upload+failed.');
+    redirect('views/faculty/view_quiz.php?id=' . ($_POST['quiz_id'] ?? '') . '&error=File+upload+failed.');
     exit();
 }
 
 $quiz_id = filter_input(INPUT_POST, 'quiz_id', FILTER_VALIDATE_INT);
 if (!$quiz_id) {
-    header('Location: /nmims_quiz_app/views/faculty/manage_quizzes.php?error=Invalid+Quiz+ID.');
+    redirect('views/faculty/manage_quizzes.php?error=Invalid+Quiz+ID.');
     exit();
 }
 
@@ -93,11 +93,11 @@ try {
     }
 
     $pdo->commit();
-    header('Location: /nmims_quiz_app/views/faculty/view_quiz.php?id=' . $quiz_id . '&success=Questions+uploaded+successfully.');
+    redirect('views/faculty/view_quiz.php?id=' . $quiz_id . '&success=Questions+uploaded+successfully.');
 
 } catch (Exception $e) {
     $pdo->rollBack();
     error_log("Question upload failed: " . $e->getMessage());
-    header('Location: /nmims_quiz_app/views/faculty/view_quiz.php?id=' . $quiz_id . '&error=' . urlencode($e->getMessage()));
+    redirect('views/faculty/view_quiz.php?id=' . $quiz_id . '&error=' . urlencode($e->getMessage()));
 }
 exit();

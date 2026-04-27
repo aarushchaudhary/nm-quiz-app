@@ -5,7 +5,7 @@
 
   // --- Authorization & Input Check ---
   if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 2 || !isset($_GET['id'])) {
-      header('Location: /nmims_quiz_app/login.php');
+      header('Location: login.php');
       exit();
   }
   $question_id = filter_var($_GET['id'], FILTER_VALIDATE_INT);
@@ -30,7 +30,7 @@
 
 <div class="form-container" style="max-width: 800px;">
     <h2>Edit Question</h2>
-    <form action="/nmims_quiz_app/api/faculty/update_question.php" method="POST" class="manual-add-form">
+    <form action="<?= get_base_url() ?>api/faculty/update_question.php" method="POST" class="manual-add-form">
         <input type="hidden" name="question_id" value="<?php echo $question['id']; ?>">
         <input type="hidden" name="quiz_id" value="<?php echo $question['quiz_id']; ?>">
         

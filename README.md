@@ -1,10 +1,10 @@
 # NMIMS Quiz App 📚
 
-A comprehensive web-based quiz application designed for educational institutions like NMIMS, featuring real-time monitoring, automated grading, and multi-role access control.
+A comprehensive, role-based quiz management system built with PHP and MySQL, designed for educational institutions. Features real-time exam monitoring, automated grading, secure authentication, and support for multiple question types.
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![License](https://img.shields.io/badge/license-GPL%203.0-blue.svg)
 ![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)
-![MySQL](https://img.shields.io/badge/MySQL-5.7%2B-orange.svg)
+![MariaDB](https://img.shields.io/badge/MariaDB-10.3%2B-orange.svg)
 
 ## 📋 Table of Contents
 - [Features](#-features)
@@ -273,19 +273,19 @@ nmims_quiz_app/
 
 ```
 
-## 🚀 Installation
+## 🚀 Quick Start
 
 ### Prerequisites
-- PHP 7.4 or higher
-- MySQL 5.7 or higher (MariaDB also supported)
-- Apache/Nginx web server with .htaccess support
+- PHP 7.4 or higher (with PDO and MySQLi extensions)
+- MariaDB 10.3+ or MySQL 5.7+
 - Composer (for PHP dependencies)
+- Git (optional, for cloning)
 
-### Setup Steps
+### Installation
 
 1. **Clone or download the repository**
    ```bash
-   git clone https://github.com/aarushchaudhary/nm-quiz-app.git
+   git clone <repository-url>
    cd nmims_quiz_app
    ```
 
@@ -296,32 +296,28 @@ nmims_quiz_app/
    cd ..
    ```
 
-3. **Configure database connection**
-   - Edit `config/database.php`
-   - Update database credentials (host, username, password, database name)
+3. **Configure database**
+   - Ensure MariaDB/MySQL service is running
+   - Import database schema:
+     ```bash
+     mysql -h 127.0.0.1 -u root < schema.sql
+     ```
+   - Default connection: `host=127.0.0.1`, `user=root`, `password=''` (empty), `database=nmims_quiz_app`
+   - **Note**: Credentials are hardcoded in `config/database.php` for the built-in server environment
 
-4. **Import database schema**
-   ```bash
-   mysql -u your_username -p your_database < schema.sql
-   ```
+4. **Start the application**
+   - Navigate to the project root:
+     ```bash
+     cd nmims_quiz_app
+     php -S localhost:8080 router.php
+     ```
+   - Access the app: **http://localhost:8080**
+   - Log in with default credentials (set in database schema)
 
-5. **Set proper file permissions**
-   ```bash
-   chmod 755 .
-   chmod -R 755 assets/
-   chmod -R 755 views/
-   chmod -R 755 api/
-   ```
-
-6. **Place in web root**
-   ```bash
-   # For XAMPP
-   mv nmims_quiz_app /path/to/xampp/htdocs/
-   ```
-
-7. **Access the application**
-   - Navigate to `http://localhost/nmims_quiz_app/`
-   - Default login credentials are set in the database
+### Configuration
+- **Database**: Edit `config/database.php` to update connection settings
+- **Base URL**: Automatically configured in `config/base_url.php` for localhost:8080
+- **Static Files**: Router (`router.php`) automatically serves CSS, JS, and images
 
 ## 📖 Usage
 
@@ -412,22 +408,21 @@ The application implements multiple security measures:
 
 ## 📝 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **GNU General Public License v3.0** - see the [LICENSE](LICENSE) file for details. You are free to use, modify, and distribute this software under the terms of the GPL 3.0 license.
 
 ## 👨‍💻 Author
 
-**Aarush Chaudhary** - [GitHub Profile](https://github.com/aarushchaudhary)
+**Aarush Chaudhary** - STME, NMIMS Hyderabad
 
 ## 🙏 Acknowledgments
 
-- NMIMS for the educational context and requirements
-- PHPSpreadsheet library for Excel handling
-- Chart.js for data visualization
+- NMIMS Hyderabad for institutional support
+- Open-source community for excellent libraries (PHPSpreadsheet, Chart.js)
 - All contributors and testers
 
-## 📧 Support
+## 📧 Support & Issues
 
-For issues, questions, or suggestions, please open an issue on [GitHub Issues](https://github.com/aarushchaudhary/nm-quiz-app/issues).
+For bug reports, feature requests, or questions, please reach out to the development team.
    cd nm-quiz-app
    ```
 

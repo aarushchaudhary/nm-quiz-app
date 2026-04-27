@@ -6,6 +6,13 @@
  * Both modules are independent and wrapped in DOMContentLoaded listeners.
  */
 
+// --- Dynamic Base URL Configuration ---
+// This allows the app to work on different environments:
+// - Built-in server (localhost:8080): /
+// - XAMPP subdirectory: /nmims_quiz_app/
+// - Production: your actual domain
+const BASE_URL = window.location.pathname.includes('nmims_quiz_app') ? '/nmims_quiz_app/' : '/';
+
 /* ========== LOGIN MODULE ========== */
 document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('login-form');
@@ -20,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = Object.fromEntries(formData.entries());
 
             try {
-                const response = await fetch('/nmims_quiz_app/api/auth.php', {
+                const response = await fetch(BASE_URL + 'api/auth.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
@@ -29,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const result = await response.json();
 
                 if (result.status === 'success') {
-                    window.location.href = '/nmims_quiz_app/index.php';
+                    window.location.href = BASE_URL + 'index.php';
                 } else if (result.status === 'conflict') {
                     // Show a confirmation dialog
                     if (confirm(result.message)) {
@@ -48,14 +55,14 @@ document.addEventListener('DOMContentLoaded', function() {
         async function forceLogin(data) {
             data.force = true; // Add the force flag
             try {
-                const response = await fetch('/nmims_quiz_app/api/auth.php', {
+                const response = await fetch(BASE_URL + 'api/auth.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
                 const result = await response.json();
                 if (result.status === 'success') {
-                    window.location.href = '/nmims_quiz_app/index.php';
+                    window.location.href = BASE_URL + 'index.php';
                 } else {
                     throw new Error(result.message);
                 }
@@ -93,7 +100,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     // --- Main Exam Functions ---
     async function startExam() {
         try {
-            const response = await fetch(`/nmims_quiz_app/api/student/fetch_exam_questions.php?id=${quizId}`);
+            const response = await fetch(`${BASE_URL}api/student/fetch_exam_questions.php?id=${quizId}`);
             const data = await response.json();
             if (!response.ok || data.error) {
                 throw new Error(data.error || 'Failed to load exam data.');
@@ -178,7 +185,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             payload.selected_option_ids = Array.from(ui.optionsGrid.querySelectorAll('input:checked')).map(i => i.value);
         }
         try {
-            const response = await fetch('/nmims_quiz_app/api/student/save_answer.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            const response = await fetch(BASE_URL + 'api/student/save_answer.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             if (!response.ok) {
                 const errorData = await response.json();
                 throw new Error(errorData.error || 'Failed to save answer.');
@@ -217,7 +224,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
 
         try {
-            await fetch('/nmims_quiz_app/api/student/finish_exam.php', {
+            await fetch(BASE_URL + 'api/student/finish_exam.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(bodyPayload)
@@ -259,7 +266,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     async function checkQuizStatus() {
         if (proctoringState.examFinished) return;
         try {
-            const response = await fetch(`/nmims_quiz_app/api/shared/get_quiz_status.php?id=${quizId}`);
+            const response = await fetch(`${BASE_URL}api/shared/get_quiz_status.php?id=${quizId}`);
             const data = await response.json();
             if (data.status && data.status !== 'In Progress') {
                 alert('The faculty has ended the exam. Your answers will now be submitted.');

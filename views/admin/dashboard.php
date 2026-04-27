@@ -4,7 +4,7 @@
 
   // --- Authorization Check for Admin (role_id = 1) ---
   if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 1) {
-      header('Location: /nmims_quiz_app/login.php');
+      header('Location: login.php');
       exit();
   }
   
@@ -36,7 +36,7 @@
 // This script remains the same to load the stats
 document.addEventListener('DOMContentLoaded', async function() {
     try {
-        const response = await fetch('/nmims_quiz_app/api/admin/get_dashboard_stats.php');
+        const response = await fetch('api/admin/get_dashboard_stats.php');
         if (!response.ok) throw new Error('Failed to fetch stats.');
         const stats = await response.json();
         

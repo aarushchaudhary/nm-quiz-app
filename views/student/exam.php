@@ -7,7 +7,7 @@
 
   // --- Authorization & Input Check ---
   if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 4) {
-      header('Location: /nmims_quiz_app/login.php');
+      header('Location: login.php');
       exit();
   }
   $quiz_id = isset($_GET['id']) ? filter_var($_GET['id'], FILTER_VALIDATE_INT) : null;
@@ -42,7 +42,7 @@
     <p id="click-prompt" style="margin-top: 15px; font-size: 18px;"></p>
 </div>
 
-<script src="/nmims_quiz_app/assets/js/script.js" defer></script>
+<script src="<?= get_asset_url('assets/js/script.js') ?>" defer></script>
 
 <?php
   // The footer is intentionally omitted on the exam page.

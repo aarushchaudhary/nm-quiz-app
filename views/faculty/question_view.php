@@ -6,7 +6,7 @@
 
   // --- Authorization & Input Check ---
   if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 2 || !isset($_GET['quiz_id'])) {
-      header('Location: /nmims_quiz_app/login.php');
+      header('Location: login.php');
       exit();
   }
   $quiz_id = filter_var($_GET['quiz_id'], FILTER_VALIDATE_INT);
@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function() {
     confirmDeleteBtn.addEventListener('click', async () => {
         if (questionIdToDelete) {
             try {
-                const response = await fetch('/nmims_quiz_app/api/faculty/delete_question.php', {
+                const response = await fetch('api/faculty/delete_question.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ question_id: questionIdToDelete })
