@@ -1,0 +1,15 @@
+# Secrets — never commit these
+.env
+
+# Python virtual environment
+.venv/
+
+# Locust CSV output and HTML reports
+results/
+*.csv
+*.html
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
