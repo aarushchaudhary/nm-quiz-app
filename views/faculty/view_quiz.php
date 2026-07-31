@@ -50,6 +50,12 @@
   foreach ($type_diff_counts as $row) {
       $diff = $row['diff_level'];
       $type = $row['type_name'];
+      
+      // Map database string to stats array key
+      if ($type === 'Multiple Answer') {
+          $type = 'MSQ';
+      }
+
       $count = $row['current_count'];
       if (isset($stats[$diff])) {
           $stats[$diff][$type] = $count;

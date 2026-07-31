@@ -188,6 +188,7 @@ CREATE TABLE `quizzes` (
   `course_id`                  INT          NOT NULL,
   `specialization_id`          INT          DEFAULT NULL,
   `show_results_immediately`   BOOLEAN      NOT NULL DEFAULT TRUE,
+  `descriptive_published`      BOOLEAN      NOT NULL DEFAULT FALSE,
   `start_time`                 DATETIME     NOT NULL,
   `end_time`                   DATETIME     NOT NULL,
   `duration_minutes`           INT          NOT NULL,

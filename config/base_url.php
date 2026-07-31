@@ -40,6 +40,16 @@ function redirect($path) {
     exit();
 }
 
+function enforce_secure_browser() {
+    $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+    // Check if the custom identifier from our Electron app is present
+    if (strpos($user_agent, 'NMIMS-Secure-Browser') === false) {
+        // If it's a regular browser, block access
+        http_response_code(403);
+        die("<h1>Access Denied</h1><p>You must use the NMIMS Secure Browser to access this page.</p>");
+    }
+}
+
 /**
  * Migration Notes:
  * - For XAMPP (Apache in subdirectory): Change BASE_URL to '/nmims_quiz_app/'

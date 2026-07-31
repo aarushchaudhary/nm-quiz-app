@@ -91,8 +91,52 @@
 </div>
 
 <script>
-// JavaScript for dynamic options (unchanged)
-// ...
+document.addEventListener('DOMContentLoaded', function() {
+    const questionTypeSelect = document.getElementById('question_type_id');
+    const optionsSection = document.getElementById('options-section');
+    const checkboxes = document.querySelectorAll('input[name="correct_answers[]"]');
+
+    function handleQuestionTypeChange() {
+        const typeName = questionTypeSelect.options[questionTypeSelect.selectedIndex].text.trim();
+        
+        // Hide options if Descriptive
+        if (typeName === 'Descriptive') {
+            optionsSection.style.display = 'none';
+        } else {
+            optionsSection.style.display = 'block';
+        }
+
+        // If changed to MCQ, enforce single selection immediately
+        if (typeName === 'MCQ') {
+            let checkedCount = 0;
+            checkboxes.forEach(function(cb) {
+                if (cb.checked) {
+                    checkedCount++;
+                    if (checkedCount > 1) {
+                        cb.checked = false;
+                    }
+                }
+            });
+        }
+    }
+
+    // Enforce single selection for MCQ when a checkbox is clicked
+    checkboxes.forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            const typeName = questionTypeSelect.options[questionTypeSelect.selectedIndex].text.trim();
+            if (typeName === 'MCQ' && this.checked) {
+                checkboxes.forEach(function(cb) {
+                    if (cb !== checkbox) cb.checked = false;
+                });
+            }
+        });
+    });
+
+    questionTypeSelect.addEventListener('change', handleQuestionTypeChange);
+
+    // Run on initial load
+    handleQuestionTypeChange();
+});
 </script>
 
 <?php
