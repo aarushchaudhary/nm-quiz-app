@@ -17,7 +17,9 @@ const ALLOWED_URL_PATTERNS = [
   BASE_URL + 'login.php',
   BASE_URL + 'index.php',
   BASE_URL + 'views/student/',
+  BASE_URL + 'views/shared/',
   BASE_URL + 'api/student/',
+  BASE_URL + 'api/shared/',
   BASE_URL + 'assets/',
   BASE_URL + 'lib/',
   BASE_URL + 'logout.php'
@@ -65,22 +67,34 @@ function startBackgroundCleaner() {
     'AutoHotkey.exe', 'AutoIt3.exe',
     // Accessibility Exploits
     'Magnify.exe', 'osk.exe',
+    // Microsoft Store / UWP Apps Host
+    'ApplicationFrameHost.exe', 'RuntimeBroker.exe',
     // File Transfer
     'WinSCP.exe', 'FileZilla.exe', 'putty.exe',
+    // Entertainment & Media
+    'spotify.exe', 'itunes.exe',
     // System Monitors
     'Taskmgr.exe', 'procmon.exe', 'perfmon.exe', 'resmon.exe'
   ];
 
-  // Run this check every 3 seconds
+  // Run this check every 5 seconds
   setInterval(() => {
-    blacklist.forEach(processName => {
-      // /F = Force, /IM = Image Name, /T = Tree (child processes)
-      // We execute this blindly; if the app isn't running, it just errors silently (which we ignore)
-      exec(`taskkill /F /IM ${processName} /T`, (error) => {
-        if (!error) console.log(`[Security Enforcement] Killed restricted app: ${processName}`);
-      });
+    const processNames = blacklist.map(name => `'${name.replace('.exe', '')}'`).join(',');
+    
+    // 1. Kill standard Win32 apps by process name
+    const cmd1 = `Stop-Process -Name ${processNames} -Force -ErrorAction SilentlyContinue`;
+    
+    // 2. Kill UWP / Store Apps (WhatsApp, Spotify, etc.) natively by killing their Appx package host processes
+    // Get-AppxPackage gets all modern apps, we filter for our targets, get their PackageFamilyName, and kill any process running under them.
+    const cmd2 = `Get-Process | Where-Object { $_.MainWindowTitle -match 'WhatsApp|Discord|Skype|Spotify|Messenger|Telegram' } | Stop-Process -Force -ErrorAction SilentlyContinue`;
+    
+    // 3. Fallback specifically for WhatsApp UWP (sometimes runs as WhatsApp.exe inside WindowsApps but gets hidden)
+    const cmd3 = `Stop-Process -Name 'WhatsApp' -Force -ErrorAction SilentlyContinue`;
+    
+    exec(`powershell.exe -NoProfile -Command "${cmd1}; ${cmd2}; ${cmd3}"`, (error) => {
+      // Executes silently
     });
-  }, 3000); 
+  }, 5000); 
 }
 
 function createWindow () {
@@ -146,13 +160,6 @@ function createWindow () {
   mainWindow.webContents.on('before-input-event', (event, input) => {
     if (input.type === 'keyDown') {
       
-      // --- EMERGENCY EXIT FOR TESTING ---
-      if (input.key === 'Q' && input.shift) {
-        console.log("Emergency Exit Triggered!");
-        app.exit(0); // Use exit(0) to bypass closable:false
-        return;
-      }
-
       // A. Block Escape Key
       if (input.key === 'Escape') {
         event.preventDefault();
