@@ -3,6 +3,10 @@
   $customProceedButtonText = 'Proceed &#8594;';
   $customProceedButtonUrl = 'manage_quizzes.php';
   
+  if (isset($_GET['id']) && filter_var($_GET['id'], FILTER_VALIDATE_INT)) {
+      $customBackButtonUrl = 'edit_quiz.php?id=' . $_GET['id'];
+  }
+  
   require_once '../../assets/templates/header.php';
   require_once '../../config/database.php';
 

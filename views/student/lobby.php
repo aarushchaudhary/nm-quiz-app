@@ -14,6 +14,9 @@
       exit();
   }
 
+  // --- Secure Browser Enforcement ---
+  enforce_secure_browser_for_exam();
+
   $quiz_id = $_GET['id'];
   $student_user_id = $_SESSION['user_id'];
 

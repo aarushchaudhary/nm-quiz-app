@@ -48,10 +48,12 @@ if (!empty($_SESSION['force_password_change']) && !$isChangePasswordPage && !$is
             ?>
 
                 <?php
-                // Show Back button on all pages EXCEPT student pages
-                $currentScript = $_SERVER['SCRIPT_FILENAME'] ?? '';
-                $isStudentPage = strpos(str_replace('\\', '/', $currentScript), '/views/student/') !== false;
-                if (!$isStudentPage):
+                // Show Back button on all pages EXCEPT student pages and dashboards
+                $currentScriptPath = str_replace('\\', '/', $currentScript);
+                $isStudentPage = strpos($currentScriptPath, '/views/student/') !== false;
+                $isDashboard = strpos($currentScriptPath, '/dashboard.php') !== false;
+                
+                if (!$isStudentPage && !$isDashboard):
                     $backText = isset($customBackButtonText) ? $customBackButtonText : '&#8592; Back';
                     $backUrl = isset($customBackButtonUrl) ? $customBackButtonUrl : 'javascript:history.back()';
                 ?>

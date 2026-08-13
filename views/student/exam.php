@@ -10,6 +10,10 @@
       redirect('login.php');
       exit();
   }
+
+  // --- Secure Browser Enforcement ---
+  enforce_secure_browser_for_exam();
+
   $quiz_id = isset($_GET['id']) ? filter_var($_GET['id'], FILTER_VALIDATE_INT) : null;
 ?>
 

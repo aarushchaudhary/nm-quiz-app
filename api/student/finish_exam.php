@@ -13,6 +13,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !isset($_SESSION['user_id']) || $_S
     exit(json_encode(['error' => 'Unauthorized access.']));
 }
 
+// --- Secure Browser Enforcement ---
+enforce_secure_browser_for_exam(true);
+
 $data = json_decode(file_get_contents('php://input'), true);
 $attempt_id = $data['attempt_id'] ?? null;
 $is_disqualified = $data['is_disqualified'] ?? false;

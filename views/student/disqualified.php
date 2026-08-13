@@ -2,6 +2,15 @@
   $pageTitle = 'Exam Disqualified';
   require_once '../../assets/templates/header.php';
 
+  // --- Authorization Check ---
+  if (!isset($_SESSION['user_id']) || $_SESSION['role_id'] != 4) {
+      redirect('login.php');
+      exit();
+  }
+
+  // --- Secure Browser Enforcement ---
+  enforce_secure_browser_for_exam();
+
   $attempt_id = isset($_GET['attempt_id']) ? filter_var($_GET['attempt_id'], FILTER_VALIDATE_INT) : null;
 ?>
 

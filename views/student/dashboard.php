@@ -12,6 +12,7 @@
   
   $student_user_id = $_SESSION['user_id'];
   $studentName = isset($_SESSION['full_name']) ? htmlspecialchars($_SESSION['full_name']) : 'Student';
+  $is_secure = is_secure_browser();
 
   // --- Fetch the Student's details ---
   $stmt_student = $pdo->prepare("SELECT course_id, graduation_year, sap_id FROM students WHERE user_id = ?");
@@ -89,10 +90,40 @@
       $stmt_published = $pdo->prepare($sql_published);
       $stmt_published->execute([':student_user_id' => $student_user_id]);
       $published_results = $stmt_published->fetchAll();
+// Helper to extract the actual exam title from the generated string
+if (!function_exists('extract_exam_title')) {
+    function extract_exam_title($full_title) {
+        $parts = explode(' - ', $full_title);
+        if (count($parts) < 4) return $full_title;
+        
+        $last_part = $parts[count($parts) - 1];
+        
+        $has_group = true;
+        // If the last part matches the date format (e.g. "28 Jul 2026"), there is no group part
+        if (preg_match('/^\d{1,2}\s+[a-zA-Z]{3}\s+\d{4}$/', trim($last_part))) {
+            $has_group = false;
+        }
+        
+        $start_index = 2;
+        $end_index = $has_group ? count($parts) - 2 : count($parts) - 1;
+        
+        if ($start_index > $end_index) return $full_title;
+        
+        $exam_title_parts = array_slice($parts, $start_index, $end_index - $start_index);
+        return implode(' - ', $exam_title_parts);
+    }
+}
 ?>
 
 <div class="manage-container">
     <h2 style="margin-bottom: 10px;">Welcome, <?php echo $studentName; ?>!</h2>
+    
+    <?php if (isset($_GET['error']) && $_GET['error'] === 'secure_browser_required'): ?>
+    <div class="message-box" style="background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; margin-bottom: 20px; padding: 12px 20px; border-radius: 6px; text-align: center;">
+        <strong>⚠ Secure Browser Required:</strong> You must use the <strong>NMIMS Secure Browser</strong> application to take exams. Please open the Secure Browser and log in from there.
+    </div>
+    <?php endif; ?>
+    
     <p style="text-align:center; color: #555; margin-top:0;">The quizzes listed below are currently available for you to join.</p>
 
     <table class="data-table">
@@ -112,7 +143,7 @@
             <?php else: ?>
                 <?php foreach ($quizzes as $quiz): ?>
                     <tr>
-                        <td><?php echo htmlspecialchars($quiz['title']); ?></td>
+                        <td><?php echo htmlspecialchars(extract_exam_title($quiz['title'])); ?></td>
                         <td><?php echo date('M j, Y, g:i A', strtotime($quiz['start_time'])); ?></td>
                         <td>
                             <?php $status_class = strtolower(str_replace(' ', '_', $quiz['status_name'])); ?>
@@ -123,7 +154,11 @@
                         <td class="action-buttons">
                             <?php
                                 if ($quiz['status_name'] != 'Not Started') {
-                                    echo '<a href="lobby.php?id=' . $quiz['id'] . '" class="btn-manage" style="background-color: #28a745;">Join Exam</a>';
+                                    if ($is_secure) {
+                                        echo '<a href="lobby.php?id=' . $quiz['id'] . '" class="btn-manage" style="background-color: #28a745;">Join Exam</a>';
+                                    } else {
+                                        echo '<span class="btn-manage" style="background-color: #f8f9fa; color: #6c757d; border: 1px solid #ced4da; cursor: not-allowed; display: inline-block; padding: 6px 12px; font-size: 13px;" title="Open the NMIMS Secure Browser to take this exam">Open NMIMS secure browser to start a test 🔒</span>';
+                                    }
                                 } else {
                                     echo '<span style="color: #6c757d;">Waiting for faculty...</span>';
                                 }
@@ -156,7 +191,7 @@
                 <?php foreach ($published_results as $result): ?>
                     <tr>
                         <td>
-                            <?php echo htmlspecialchars($result['title']); ?>
+                            <?php echo htmlspecialchars(extract_exam_title($result['title'])); ?>
                             <?php if ($result['has_desc_count'] > 0 && !$result['descriptive_published']): ?>
                                 <br><span style="display: inline-block; margin-top: 4px; font-size: 0.8em; color: #856404; background-color: #fff3cd; padding: 2px 6px; border-radius: 4px; border: 1px solid #ffeeba;">Descriptive results pending</span>
                             <?php endif; ?>
